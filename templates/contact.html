@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Contact{% endblock %}
+{% block page_title %}Contact{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>✉️ Contact</h1>
+  <p>Get in touch about this ML project or data analysis questions.</p>
+</div>
+
+<div class="grid-2">
+
+  <!-- Contact info -->
+  <div class="card">
+    <div class="card-title">📬 Project Contact</div>
+
+    <div class="contact-info-item">
+      <div class="contact-icon">👤</div>
+      <div>
+        <div style="font-size:.78rem;color:#64748b;font-weight:600;margin-bottom:2px;">Researcher</div>
+        <div style="font-weight:600;">ML Project Team</div>
+      </div>
+    </div>
+
+    <div class="contact-info-item">
+      <div class="contact-icon">🏫</div>
+      <div>
+        <div style="font-size:.78rem;color:#64748b;font-weight:600;margin-bottom:2px;">Institution</div>
+        <div style="font-weight:600;">Research Institution</div>
+      </div>
+    </div>
+
+    <div class="contact-info-item">
+      <div class="contact-icon">📧</div>
+      <div>
+        <div style="font-size:.78rem;color:#64748b;font-weight:600;margin-bottom:2px;">Email</div>
+        <div style="font-weight:600;">project@example.com</div>
+      </div>
+    </div>
+
+    <div class="contact-info-item">
+      <div class="contact-icon">💻</div>
+      <div>
+        <div style="font-size:.78rem;color:#64748b;font-weight:600;margin-bottom:2px;">Repository</div>
+        <div style="font-weight:600;">GitHub / Local Project</div>
+      </div>
+    </div>
+
+    <div class="contact-info-item">
+      <div class="contact-icon">📍</div>
+      <div>
+        <div style="font-size:.78rem;color:#64748b;font-weight:600;margin-bottom:2px;">Dataset Station</div>
+        <div style="font-weight:600;">Aotizhongxin, Beijing, China</div>
+      </div>
+    </div>
+
+    <!-- Flash message after form submit -->
+    {% if sent %}
+    <div class="alert alert-success" style="margin-top:16px;">
+      ✅ Message sent successfully!
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Contact form -->
+  <div class="card">
+    <div class="card-title">💬 Send a Message</div>
+
+    <form method="POST" action="{{ url_for('contact') }}">
+
+      <div class="form-group">
+        <label class="form-label" for="c_name">Your Name</label>
+        <input class="form-control" type="text" id="c_name" name="name"
+               placeholder="e.g. Jane Smith" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="c_email">Email Address</label>
+        <input class="form-control" type="email" id="c_email" name="email"
+               placeholder="jane@example.com" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="c_subject">Subject</label>
+        <select class="form-control" id="c_subject" name="subject">
+          <option value="general">General Inquiry</option>
+          <option value="dataset">Dataset Question</option>
+          <option value="model">Model / Prediction</option>
+          <option value="bug">Bug Report</option>
+          <option value="collaboration">Collaboration</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="c_message">Message</label>
+        <textarea class="form-control" id="c_message" name="message"
+                  rows="5" placeholder="Write your message…" required
+                  style="resize:vertical;"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;">
+        ✉️ Send Message
+      </button>
+
+    </form>
+  </div>
+
+</div>
+
+<!-- FAQ section -->
+<div class="card" style="margin-top:24px;">
+  <div class="card-title">❓ Frequently Asked Questions</div>
+  <div style="display:flex;flex-direction:column;gap:0;">
+    {% set faqs = [
+      ('Where does the dataset come from?',
+       'The dataset is from the Beijing Multi-Site Air Quality Dataset available on the UCI Machine Learning Repository. It covers Aotizhongxin station with hourly measurements from March 2013 to February 2017.'),
+      ('What does PM2.5 mean?',
+       'PM2.5 refers to particulate matter with diameter ≤ 2.5 micrometres. It is a key air quality indicator due to its health impact on the respiratory and cardiovascular systems.'),
+      ('Can I use this code for my own project?',
+       'Yes. The project is intended for educational and research purposes. You are free to adapt the preprocessing scripts and modelling code.'),
+      ('How do I run the EDA script?',
+       'Open a terminal in the project root and run: python src/EDA_Analysis_air_quality.py — Charts will be saved to the output/ folder.'),
+      ('Why are model metrics showing placeholder values?',
+       'Model training is a planned next step. The metrics shown are indicative prototypes. Run the training pipeline when the model scripts are added.'),
+    ] %}
+    {% for q, a in faqs %}
+    <details style="border-bottom:1px solid #e2e8f0;padding:14px 0;">
+      <summary style="font-weight:600;font-size:.9rem;cursor:pointer;list-style:none;
+                      display:flex;justify-content:space-between;align-items:center;">
+        {{ q }} <span style="color:#94a3b8;">▾</span>
+      </summary>
+      <p style="font-size:.85rem;color:#64748b;margin-top:10px;line-height:1.7;">{{ a }}</p>
+    </details>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

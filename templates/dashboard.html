@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>📊 Project Dashboard</h1>
+  <p>Overview of the dataset, analysis progress and key findings.</p>
+</div>
+
+<!-- KPI Stats -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon blue">🗂️</div>
+    <div>
+      <div class="stat-value">{{ stats.total_rows | default('420,768') }}</div>
+      <div class="stat-label">Total Records</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">📋</div>
+    <div>
+      <div class="stat-value">{{ stats.total_cols | default('18') }}</div>
+      <div class="stat-label">Columns</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">⚠️</div>
+    <div>
+      <div class="stat-value">{{ stats.missing | default('2,847') }}</div>
+      <div class="stat-label">Missing Values</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple">📊</div>
+    <div>
+      <div class="stat-value">{{ stats.numeric_cols | default('14') }}</div>
+      <div class="stat-label">Numeric Columns</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon red">🔤</div>
+    <div>
+      <div class="stat-value">{{ stats.cat_cols | default('4') }}</div>
+      <div class="stat-label">Categorical Columns</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon cyan">📈</div>
+    <div>
+      <div class="stat-value">{{ stats.charts | default('61') }}</div>
+      <div class="stat-label">Generated Charts</div>
+    </div>
+  </div>
+</div>
+
+<!-- Middle row -->
+<div class="grid-2" style="margin-bottom:24px;">
+
+  <!-- Pollutant Averages -->
+  <div class="card">
+    <div class="card-title">💨 Pollutant Averages (μg/m³)</div>
+    {% set pollutants = [
+      ('PM2.5', 56.2,  100, 'blue'),
+      ('PM10',  84.1,  150, 'amber'),
+      ('SO2',   14.3,   50, 'green'),
+      ('NO2',   50.8,  100, 'purple'),
+      ('CO',    978.5, 2000,'red'),
+      ('O3',    59.2,  200, 'cyan'),
+    ] %}
+    {% for name, val, max, color in pollutants %}
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:.84rem;margin-bottom:4px;">
+        <span style="font-weight:600;">{{ name }}</span>
+        <span style="color:#64748b;">{{ val }}</span>
+      </div>
+      <div class="progress">
+        <div class="progress-bar" style="width:{{ [(val/max*100)|int, 100]|min }}%;
+             background:{% if color=='blue' %}#3b82f6{% elif color=='amber' %}#f59e0b
+             {% elif color=='green' %}#22c55e{% elif color=='purple' %}#a855f7
+             {% elif color=='red' %}#ef4444{% else %}#06b6d4{% endif %};">
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Analysis Pipeline -->
+  <div class="card">
+    <div class="card-title">🔄 Analysis Pipeline Progress</div>
+    {% set steps = [
+      ('Data Loading & Identification', True, 'green'),
+      ('EDA & Visualization',           True, 'green'),
+      ('Missing Value Treatment',        True, 'green'),
+      ('Feature Encoding',               True, 'green'),
+      ('Scaling & Normalization',        True, 'green'),
+      ('Model Training',                 False,'amber'),
+      ('Model Evaluation',               False,'amber'),
+      ('Deployment',                     False,'red'),
+    ] %}
+    {% for label, done, color in steps %}
+    <div style="display:flex;align-items:center;gap:12px;padding:9px 0;
+                border-bottom:1px solid #f1f5f9;">
+      <span style="font-size:1rem;">
+        {% if done %}✅{% else %}🔲{% endif %}
+      </span>
+      <span style="font-size:.86rem;{% if done %}color:#1e293b;{% else %}color:#94a3b8;{% endif %}">
+        {{ label }}
+      </span>
+      <span class="tag tag-{% if color=='green' %}green{% elif color=='amber' %}amber{% else %}red{% endif %}"
+            style="margin-left:auto;font-size:.7rem;">
+        {% if done %}Done{% elif color=='amber' %}Pending{% else %}TBD{% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- Bottom row -->
+<div class="grid-2">
+
+  <!-- Dataset versions -->
+  <div class="card">
+    <div class="card-title">📁 Dataset Files</div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Description</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set files = [
+            ('PRSA_Data_Aotizhongxin_raw.csv',    'Raw dataset',              'Raw'),
+            ('clean_air_quality_M2.csv',           'Cleaned (Method 2)',       'Ready'),
+            ('clean_air_quality_scaling_M2.csv',   'Scaled & normalised',      'Ready'),
+            ('clean_label_encode_air_quality.csv', 'Label encoded',            'Ready'),
+            ('clean_one_hot_encoding.csv',         'One-hot encoded',          'Ready'),
+            ('clean_embedded_encode.csv',          'Embedding encoded',        'Ready'),
+          ] %}
+          {% for fname, desc, status in files %}
+          <tr>
+            <td style="font-family:monospace;font-size:.78rem;">{{ fname }}</td>
+            <td>{{ desc }}</td>
+            <td>
+              <span class="tag {% if status=='Raw' %}tag-amber{% else %}tag-green{% endif %}">
+                {{ status }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Key observations -->
+  <div class="card">
+    <div class="card-title">🔍 Key Observations</div>
+    <ul style="list-style:none;padding:0;">
+      {% set obs = [
+        ('PM2.5 shows strong positive correlation with PM10 and CO.','blue'),
+        ('Winter months have significantly higher pollutant levels.','red'),
+        ('Wind direction (wd) influences pollutant dispersion.','purple'),
+        ('Rainfall (RAIN) negatively correlates with most pollutants.','green'),
+        ('Temperature (TEMP) has an inverse relation with PM2.5.','amber'),
+        ('Missing values are highest in PM2.5 (~2.1% of rows).','red'),
+      ] %}
+      {% for text, color in obs %}
+      <li style="display:flex;align-items:flex-start;gap:10px;
+                 padding:10px 0;border-bottom:1px solid #f1f5f9;">
+        <span style="color:{% if color=='blue' %}#3b82f6{% elif color=='red' %}#ef4444
+               {% elif color=='purple' %}#a855f7{% elif color=='green' %}#22c55e
+               {% else %}#f59e0b{% endif %};margin-top:2px;">●</span>
+        <span style="font-size:.85rem;">{{ text }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+</div>
+
+{% endblock %}

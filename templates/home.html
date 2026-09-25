@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block page_title %}Home{% endblock %}
+
+{% block content %}
+
+<!-- Hero Banner -->
+<div style="background:linear-gradient(135deg,#1e3a5f,#0284c7);border-radius:16px;padding:48px 40px;color:#fff;margin-bottom:28px;position:relative;overflow:hidden;">
+  <div style="position:absolute;right:-40px;top:-40px;width:260px;height:260px;background:rgba(255,255,255,.05);border-radius:50%;"></div>
+  <div style="position:absolute;right:60px;bottom:-60px;width:180px;height:180px;background:rgba(255,255,255,.04);border-radius:50%;"></div>
+  <div style="position:relative;z-index:1;">
+    <span style="background:rgba(255,255,255,.15);padding:4px 14px;border-radius:20px;font-size:.78rem;font-weight:600;letter-spacing:.05em;">RESEARCH PROJECT</span>
+    <h1 style="font-size:2.2rem;font-weight:800;margin:16px 0 10px;line-height:1.2;">
+      Air Quality Analysis<br/>& Machine Learning
+    </h1>
+    <p style="opacity:.8;font-size:1rem;max-width:520px;line-height:1.6;">
+      Comprehensive EDA, preprocessing, and predictive modelling on Beijing's
+      Aotizhongxin air quality dataset — covering PM2.5, PM10, SO₂, NO₂, CO and O₃.
+    </p>
+    <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary" style="background:#fff;color:#1d4ed8;">
+        📊 View Dashboard
+      </a>
+      <a href="{{ url_for('dataset') }}" class="btn btn-outline" style="border-color:rgba(255,255,255,.4);color:#fff;">
+        🗂️ Explore Dataset
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Quick-stat cards -->
+<div class="stats-grid" style="margin-bottom:28px;">
+  <div class="stat-card">
+    <div class="stat-icon blue">🗂️</div>
+    <div>
+      <div class="stat-value">420K+</div>
+      <div class="stat-label">Total Records</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">📋</div>
+    <div>
+      <div class="stat-value">18</div>
+      <div class="stat-label">Features / Columns</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">📈</div>
+    <div>
+      <div class="stat-value">61</div>
+      <div class="stat-label">Output Charts</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple">⚙️</div>
+    <div>
+      <div class="stat-value">5</div>
+      <div class="stat-label">Encoding Methods</div>
+    </div>
+  </div>
+</div>
+
+<!-- Feature Cards -->
+<div class="grid-3" style="margin-bottom:28px;">
+
+  <a href="{{ url_for('dataset') }}" style="text-decoration:none;">
+    <div class="card" style="height:100%;transition:transform .2s,box-shadow .2s;"
+         onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'"
+         onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="font-size:2rem;margin-bottom:12px;">🗂️</div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:8px;">Dataset Viewer</h3>
+      <p style="font-size:.83rem;color:#64748b;line-height:1.6;">
+        Browse raw and cleaned datasets with interactive table, search and column stats.
+      </p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('visualization') }}" style="text-decoration:none;">
+    <div class="card" style="height:100%;transition:transform .2s,box-shadow .2s;"
+         onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'"
+         onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="font-size:2rem;margin-bottom:12px;">📈</div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:8px;">EDA Visualizations</h3>
+      <p style="font-size:.83rem;color:#64748b;line-height:1.6;">
+        Histograms, boxplots, correlation heatmaps, pair plots and outlier charts.
+      </p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('preprocessing') }}" style="text-decoration:none;">
+    <div class="card" style="height:100%;transition:transform .2s,box-shadow .2s;"
+         onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'"
+         onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="font-size:2rem;margin-bottom:12px;">⚙️</div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:8px;">Preprocessing</h3>
+      <p style="font-size:.83rem;color:#64748b;line-height:1.6;">
+        Missing-value handling, label, one-hot, ordinal, target & embedding encodings.
+      </p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('models') }}" style="text-decoration:none;">
+    <div class="card" style="height:100%;transition:transform .2s,box-shadow .2s;"
+         onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'"
+         onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="font-size:2rem;margin-bottom:12px;">🤖</div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:8px;">ML Models</h3>
+      <p style="font-size:.83rem;color:#64748b;line-height:1.6;">
+        Linear Regression, Random Forest, XGBoost — performance comparison & metrics.
+      </p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('prediction') }}" style="text-decoration:none;">
+    <div class="card" style="height:100%;transition:transform .2s,box-shadow .2s;"
+         onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'"
+         onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="font-size:2rem;margin-bottom:12px;">🔮</div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:8px;">Prediction Tool</h3>
+      <p style="font-size:.83rem;color:#64748b;line-height:1.6;">
+        Enter pollutant values and instantly get an AQI category prediction.
+      </p>
+    </div>
+  </a>
+
+  <a href="{{ url_for('reports') }}" style="text-decoration:none;">
+    <div class="card" style="height:100%;transition:transform .2s,box-shadow .2s;"
+         onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(0,0,0,.1)'"
+         onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="font-size:2rem;margin-bottom:12px;">📄</div>
+      <h3 style="font-size:1rem;font-weight:700;margin-bottom:8px;">Reports</h3>
+      <p style="font-size:.83rem;color:#64748b;line-height:1.6;">
+        Downloadable CSV reports — missing values, correlation matrix, statistical summary.
+      </p>
+    </div>
+  </a>
+
+</div>
+
+<!-- Dataset overview -->
+<div class="card">
+  <div class="card-title">📋 Dataset Columns at a Glance</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    {% for col in ['year','month','day','hour','PM2.5','PM10','SO2','NO2','CO','O3','TEMP','PRES','DEWP','RAIN','wd','WSPM','station'] %}
+    <span class="tag tag-blue">{{ col }}</span>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

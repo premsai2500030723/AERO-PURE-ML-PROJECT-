@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+{% block page_title %}About{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>ℹ️ About This Project</h1>
+  <p>Background, objectives, tools and dataset information.</p>
+</div>
+
+<div class="grid-2" style="margin-bottom:24px;">
+
+  <!-- Project info -->
+  <div class="card">
+    <div style="font-size:2.5rem;margin-bottom:12px;">🌫️</div>
+    <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:10px;">
+      Air Quality Analysis &amp; Prediction
+    </h2>
+    <p style="font-size:.88rem;color:#64748b;line-height:1.8;margin-bottom:16px;">
+      This project performs comprehensive exploratory data analysis (EDA) and machine learning
+      modelling on hourly air quality measurements from the Aotizhongxin monitoring station
+      in Beijing, China. The goal is to understand pollution patterns and build predictive
+      models for PM2.5 concentration.
+    </p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      {% for tag in ['Python', 'Pandas', 'Scikit-learn', 'Seaborn', 'Matplotlib',
+                     'Flask', 'Machine Learning', 'EDA', 'Air Quality'] %}
+      <span class="tag tag-blue">{{ tag }}</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Dataset info -->
+  <div class="card">
+    <div class="card-title">📂 Dataset Information</div>
+    {% set ds_info = [
+      ('Source',     'Beijing Multi-Site Air Quality Dataset (UCI ML Repo)'),
+      ('Station',    'Aotizhongxin, Beijing, China'),
+      ('Period',     'March 2013 – February 2017 (4 years)'),
+      ('Frequency',  'Hourly measurements'),
+      ('Rows',       '~ 420,768'),
+      ('Columns',    '18 (temporal + pollutants + weather)'),
+      ('Target',     'PM2.5 concentration (μg/m³)'),
+      ('Format',     'CSV'),
+    ] %}
+    <div class="table-wrapper">
+      <table>
+        <tbody>
+          {% for key, val in ds_info %}
+          <tr>
+            <td style="font-weight:600;color:#64748b;width:120px;">{{ key }}</td>
+            <td>{{ val }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Objectives -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-title">🎯 Project Objectives</div>
+  <div class="grid-3">
+    {% set objectives = [
+      ('🔍', 'Explore & Understand',
+       'Perform full EDA to understand distributions, correlations and seasonal patterns.'),
+      ('🧹', 'Clean & Preprocess',
+       'Handle missing values, remove duplicates, encode categoricals, scale features.'),
+      ('🤖', 'Build Models',
+       'Train and compare multiple regression models to predict PM2.5 levels.'),
+      ('📊', 'Evaluate & Compare',
+       'Use R², MAE and RMSE to identify the best-performing model.'),
+      ('🔮', 'Predict',
+       'Deploy a simple prediction tool for real-time PM2.5 estimation.'),
+      ('📄', 'Document & Report',
+       'Generate charts and CSV reports summarising all findings.'),
+    ] %}
+    {% for icon, title, desc in objectives %}
+    <div style="padding:18px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+      <div style="font-size:1.8rem;margin-bottom:8px;">{{ icon }}</div>
+      <h4 style="font-size:.9rem;font-weight:700;margin-bottom:6px;">{{ title }}</h4>
+      <p style="font-size:.82rem;color:#64748b;line-height:1.6;">{{ desc }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Tech stack -->
+<div class="card">
+  <div class="card-title">🛠️ Technology Stack</div>
+  <div class="grid-3">
+    {% set stack = [
+      ('Python 3.11',      '🐍', 'Core language'),
+      ('Pandas',           '🐼', 'Data manipulation'),
+      ('NumPy',            '🔢', 'Numerical computing'),
+      ('Scikit-learn',     '🤖', 'ML algorithms'),
+      ('Matplotlib',       '📉', 'Static charting'),
+      ('Seaborn',          '🎨', 'Statistical visualisation'),
+      ('Flask',            '🌐', 'Web framework'),
+      ('HTML / CSS',       '🖥️', 'Frontend templates'),
+      ('PyCharm',          '💻', 'IDE'),
+    ] %}
+    {% for name, icon, role in stack %}
+    <div style="display:flex;align-items:center;gap:12px;
+                padding:12px;background:#f8fafc;border-radius:8px;
+                border:1px solid #e2e8f0;">
+      <span style="font-size:1.5rem;">{{ icon }}</span>
+      <div>
+        <div style="font-size:.88rem;font-weight:700;">{{ name }}</div>
+        <div style="font-size:.76rem;color:#64748b;">{{ role }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

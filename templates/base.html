@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Air Quality ML{% endblock %} — AQ Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+  <!-- ── Sidebar ────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-brand">
+      <h2>🌫️ AQ ML Dashboard</h2>
+      <p>Aotizhongxin Station · Beijing</p>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <span class="nav-section-title">Main</span>
+      <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}"
+         href="{{ url_for('home') }}">
+        <span class="icon">🏠</span> Home
+      </a>
+      <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}"
+         href="{{ url_for('dashboard') }}">
+        <span class="icon">📊</span> Dashboard
+      </a>
+
+      <span class="nav-section-title">Data</span>
+      <a class="nav-link {% if request.endpoint == 'dataset' %}active{% endif %}"
+         href="{{ url_for('dataset') }}">
+        <span class="icon">🗂️</span> Dataset
+      </a>
+      <a class="nav-link {% if request.endpoint == 'visualization' %}active{% endif %}"
+         href="{{ url_for('visualization') }}">
+        <span class="icon">📈</span> Visualization
+      </a>
+      <a class="nav-link {% if request.endpoint == 'preprocessing' %}active{% endif %}"
+         href="{{ url_for('preprocessing') }}">
+        <span class="icon">⚙️</span> Preprocessing
+      </a>
+
+      <span class="nav-section-title">Models</span>
+      <a class="nav-link {% if request.endpoint == 'models' %}active{% endif %}"
+         href="{{ url_for('models') }}">
+        <span class="icon">🤖</span> Models
+      </a>
+      <a class="nav-link {% if request.endpoint == 'prediction' %}active{% endif %}"
+         href="{{ url_for('prediction') }}">
+        <span class="icon">🔮</span> Prediction
+      </a>
+      <a class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}"
+         href="{{ url_for('reports') }}">
+        <span class="icon">📄</span> Reports
+      </a>
+
+      <span class="nav-section-title">Info</span>
+      <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}"
+         href="{{ url_for('about') }}">
+        <span class="icon">ℹ️</span> About
+      </a>
+      <a class="nav-link {% if request.endpoint == 'contact' %}active{% endif %}"
+         href="{{ url_for('contact') }}">
+        <span class="icon">✉️</span> Contact
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      AQ ML Project &copy; 2026
+    </div>
+
+  </aside>
+
+  <!-- ── Main wrapper ────────────────────────────── -->
+  <div class="main-wrapper">
+
+    <!-- Top bar -->
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <button id="sidebar-toggle"
+                style="background:none;border:none;font-size:1.3rem;cursor:pointer;display:none;">
+          ☰
+        </button>
+        <span class="topbar-title">{% block page_title %}{% endblock %}</span>
+      </div>
+      <div class="topbar-right">
+        <span class="badge-status">● Live</span>
+        <span style="font-size:.82rem;color:#64748b;">Aotizhongxin, Beijing</span>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

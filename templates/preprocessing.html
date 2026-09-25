@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Preprocessing{% endblock %}
+{% block page_title %}Preprocessing{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>⚙️ Data Preprocessing</h1>
+  <p>Step-by-step pipeline applied to clean and prepare the dataset for modelling.</p>
+</div>
+
+<!-- Summary cards -->
+<div class="stats-grid" style="margin-bottom:28px;">
+  <div class="stat-card">
+    <div class="stat-icon blue">🔢</div>
+    <div>
+      <div class="stat-value">0</div>
+      <div class="stat-label">Duplicates (after clean)</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">✅</div>
+    <div>
+      <div class="stat-value">0</div>
+      <div class="stat-label">Missing Values (after fill)</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">🏷️</div>
+    <div>
+      <div class="stat-value">5</div>
+      <div class="stat-label">Encoding Methods</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple">📐</div>
+    <div>
+      <div class="stat-value">3</div>
+      <div class="stat-label">Scaling Strategies</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-bottom:24px;">
+
+  <!-- Pipeline steps -->
+  <div class="card">
+    <div class="card-title">🔄 Preprocessing Pipeline</div>
+    <ul class="step-list">
+      {% set steps = [
+        ('Load Raw Dataset',
+         'Read PRSA_Data_Aotizhongxin_raw.csv using pandas. Shape: (420768, 18).'),
+        ('Identify Missing Values',
+         'Counted nulls per column; generated Missing_Values_Heatmap.png and Missing_Values_Report.csv.'),
+        ('Remove Duplicates',
+         'Dropped exact duplicate rows using DataFrame.drop_duplicates().'),
+        ('Fill Numeric NaNs → Median',
+         'Applied column-wise median imputation for all int/float columns.'),
+        ('Fill Categorical NaNs → Mode',
+         'Applied mode fill for object/category columns (wd, station).'),
+        ('Strip & Lowercase Strings',
+         'Normalised categorical strings to avoid case-mismatch issues.'),
+        ('Label Encoding',
+         'Encoded wd and station with sklearn LabelEncoder.'),
+        ('One-Hot Encoding',
+         'Expanded wd into binary columns with get_dummies(drop_first=True).'),
+        ('Ordinal Encoding',
+         'Assigned integer ranks to wind direction categories by frequency.'),
+        ('Target Encoding',
+         'Replaced categories with mean PM2.5 target value per group.'),
+        ('Embedding Encoding',
+         'Used small dense-layer representation for high-cardinality column.'),
+        ('Standard Scaling',
+         'Applied StandardScaler to all numeric columns for model readiness.'),
+        ('Min-Max Normalisation',
+         'Rescaled features to [0, 1] range for distance-based algorithms.'),
+        ('Save Cleaned Datasets',
+         'Exported multiple CSV variants to the /dataset folder.'),
+      ] %}
+      {% for title, desc in steps %}
+      <li class="step-item">
+        <div class="step-num">{{ loop.index }}</div>
+        <div class="step-content">
+          <h4>{{ title }}</h4>
+          <p>{{ desc }}</p>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Encoding comparison -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+
+    <div class="card">
+      <div class="card-title">🏷️ Encoding Methods Comparison</div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>File</th><th>Best For</th></tr>
+          </thead>
+          <tbody>
+            {% set enc = [
+              ('Label Encoding',    'clean_label_encode_air_quality.csv',    'Tree models'),
+              ('One-Hot Encoding',  'clean_one_hot_encoding_air_quality.csv','Linear models'),
+              ('Ordinal Encoding',  'clean_ordinal_encode_air_quality.py',   'Ordered cats'),
+              ('Target Encoding',   'clean_target_encode_air_quality.py',    'High cardinality'),
+              ('Embedding Encoding','clean_embedded_encode_air_quality.csv', 'Deep learning'),
+            ] %}
+            {% for method, file, best in enc %}
+            <tr>
+              <td style="font-weight:600;">{{ method }}</td>
+              <td style="font-family:monospace;font-size:.76rem;">{{ file }}</td>
+              <td><span class="tag tag-blue" style="font-size:.72rem;">{{ best }}</span></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📐 Scaling Methods</div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Method</th><th>Range</th><th>Use Case</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;">StandardScaler</td>
+              <td>Mean=0, Std=1</td>
+              <td>SVM, Logistic Reg.</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">MinMaxScaler</td>
+              <td>[0, 1]</td>
+              <td>Neural Networks</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">RobustScaler</td>
+              <td>IQR-based</td>
+              <td>Outlier-heavy data</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 Data Shape Before / After</div>
+      {% set shapes = [
+        ('Raw','420 768','18','—'),
+        ('After drop duplicates','420 768','18','0 removed'),
+        ('After median fill','420 768','18','0 nulls'),
+        ('After label encode','420 768','18','wd+station encoded'),
+        ('After one-hot','420 768','33','wd expanded'),
+        ('After scaling','420 768','18','values normalised'),
+      ] %}
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Stage</th><th>Rows</th><th>Cols</th><th>Note</th></tr></thead>
+          <tbody>
+            {% for stage, rows, cols, note in shapes %}
+            <tr>
+              <td style="font-weight:600;">{{ stage }}</td>
+              <td>{{ rows }}</td>
+              <td>{{ cols }}</td>
+              <td style="color:#64748b;font-size:.8rem;">{{ note }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

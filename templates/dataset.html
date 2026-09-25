@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Dataset{% endblock %}
+{% block page_title %}Dataset Viewer{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>🗂️ Dataset Viewer</h1>
+  <p>Browse the raw and cleaned air quality dataset records.</p>
+</div>
+
+<!-- Dataset selector + search -->
+<div class="card" style="margin-bottom:20px;">
+  <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <div>
+      <label class="form-label" style="margin-bottom:0;margin-right:8px;">Select Dataset:</label>
+      <select id="ds-select" class="form-control" style="width:auto;display:inline-block;"
+              onchange="window.location.href='{{ url_for('dataset') }}?file='+this.value">
+        {% for f in dataset_files %}
+        <option value="{{ f }}" {% if f == selected_file %}selected{% endif %}>{{ f }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="flex:1;min-width:200px;">
+      <input type="text" id="table-search" class="form-control"
+             placeholder="🔍  Search any value…" />
+    </div>
+    <span class="tag tag-blue">{{ total_rows }} rows × {{ total_cols }} cols</span>
+  </div>
+</div>
+
+<!-- Stats row -->
+<div class="stats-grid" style="margin-bottom:20px;">
+  <div class="stat-card">
+    <div class="stat-icon blue">📊</div>
+    <div>
+      <div class="stat-value">{{ total_rows }}</div>
+      <div class="stat-label">Total Rows</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon green">📋</div>
+    <div>
+      <div class="stat-value">{{ total_cols }}</div>
+      <div class="stat-label">Total Columns</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon amber">⚠️</div>
+    <div>
+      <div class="stat-value">{{ missing_total }}</div>
+      <div class="stat-label">Missing Values</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon purple">🔢</div>
+    <div>
+      <div class="stat-value">{{ numeric_count }}</div>
+      <div class="stat-label">Numeric Cols</div>
+    </div>
+  </div>
+</div>
+
+<!-- Data table -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-title">📋 Data Preview (first {{ rows|length }} rows)</div>
+  <div class="table-wrapper">
+    <table id="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          {% for col in columns %}
+          <th>{{ col }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td style="color:#94a3b8;font-size:.78rem;">{{ loop.index }}</td>
+          {% for cell in row %}
+          <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Column info -->
+<div class="card">
+  <div class="card-title">🔬 Column Overview</div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Column</th>
+          <th>Type</th>
+          <th>Missing</th>
+          <th>Missing %</th>
+          <th>Unique</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for col_info in col_stats %}
+        <tr>
+          <td style="font-weight:600;">{{ col_info.name }}</td>
+          <td><span class="tag {% if 'int' in col_info.dtype or 'float' in col_info.dtype %}tag-blue{% else %}tag-purple{% endif %}">{{ col_info.dtype }}</span></td>
+          <td>{{ col_info.missing }}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="progress" style="width:80px;">
+                <div class="progress-bar"
+                     style="width:{{ col_info.missing_pct }}%;
+                            background:{% if col_info.missing_pct > 10 %}#ef4444{% elif col_info.missing_pct > 0 %}#f59e0b{% else %}#22c55e{% endif %};">
+                </div>
+              </div>
+              <span style="font-size:.78rem;">{{ col_info.missing_pct }}%</span>
+            </div>
+          </td>
+          <td>{{ col_info.unique }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

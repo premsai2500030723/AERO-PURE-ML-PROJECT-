@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Models{% endblock %}
+{% block page_title %}ML Models{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>🤖 Machine Learning Models</h1>
+  <p>Model candidates, architecture details and performance metrics for PM2.5 prediction.</p>
+</div>
+
+<div class="alert alert-info">
+  ℹ️ Model training is pending. The metrics below are indicative / placeholder values for the prototype.
+</div>
+
+<!-- Model cards -->
+<div class="grid-3" style="margin-bottom:24px;">
+
+  {% set models = [
+    ('Linear Regression',   '📉', 'blue',
+     'Baseline linear model assuming a linear relationship between features and PM2.5.',
+     '0.68', '18.4', '24.2', 'Baseline'),
+    ('Random Forest',       '🌲', 'green',
+     'Ensemble of 100 decision trees with bootstrap sampling and feature randomness.',
+     '0.87', '10.1', '14.8', 'Best'),
+    ('XGBoost',             '⚡', 'amber',
+     'Gradient-boosted trees with regularisation (L1/L2). Fast and accurate.',
+     '0.85', '11.2', '15.6', 'Competitive'),
+  ] %}
+
+  {% for name, icon, color, desc, r2, mae, rmse, badge in models %}
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.6rem;">{{ icon }}</span>
+        <span style="font-size:1rem;font-weight:700;">{{ name }}</span>
+      </div>
+      <span class="tag {% if badge=='Best' %}tag-green{% elif badge=='Baseline' %}tag-amber{% else %}tag-blue{% endif %}">
+        {{ badge }}
+      </span>
+    </div>
+    <p style="font-size:.83rem;color:#64748b;margin-bottom:16px;line-height:1.6;">{{ desc }}</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+      <div style="background:#f8fafc;border-radius:8px;padding:10px;">
+        <div style="font-size:1.1rem;font-weight:700;">{{ r2 }}</div>
+        <div style="font-size:.72rem;color:#64748b;">R² Score</div>
+      </div>
+      <div style="background:#f8fafc;border-radius:8px;padding:10px;">
+        <div style="font-size:1.1rem;font-weight:700;">{{ mae }}</div>
+        <div style="font-size:.72rem;color:#64748b;">MAE</div>
+      </div>
+      <div style="background:#f8fafc;border-radius:8px;padding:10px;">
+        <div style="font-size:1.1rem;font-weight:700;">{{ rmse }}</div>
+        <div style="font-size:.72rem;color:#64748b;">RMSE</div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+
+<!-- Comparison table + Feature importance -->
+<div class="grid-2" style="margin-bottom:24px;">
+
+  <div class="card">
+    <div class="card-title">📊 Model Comparison Table</div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Model</th><th>R²</th><th>MAE</th><th>RMSE</th><th>Train Time</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Linear Regression</td><td>0.68</td><td>18.4</td><td>24.2</td><td>~1s</td></tr>
+          <tr><td>Random Forest</td>    <td style="color:#22c55e;font-weight:700;">0.87</td><td>10.1</td><td>14.8</td><td>~45s</td></tr>
+          <tr><td>XGBoost</td>          <td>0.85</td><td>11.2</td><td>15.6</td><td>~12s</td></tr>
+          <tr><td>Ridge Regression</td> <td>0.70</td><td>17.9</td><td>23.8</td><td>~1s</td></tr>
+          <tr><td>Decision Tree</td>    <td>0.79</td><td>13.5</td><td>18.4</td><td>~3s</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🏆 Top Feature Importances (Random Forest)</div>
+    {% set features = [
+      ('PM10',  0.31),
+      ('CO',    0.18),
+      ('TEMP',  0.12),
+      ('NO2',   0.10),
+      ('hour',  0.08),
+      ('DEWP',  0.07),
+      ('month', 0.06),
+      ('WSPM',  0.04),
+      ('PRES',  0.03),
+      ('SO2',   0.01),
+    ] %}
+    {% for feat, imp in features %}
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:.84rem;margin-bottom:3px;">
+        <span style="font-weight:600;">{{ feat }}</span>
+        <span style="color:#64748b;">{{ (imp*100)|int }}%</span>
+      </div>
+      <div class="progress">
+        <div class="progress-bar" style="width:{{ (imp*100)|int }}%;background:#3b82f6;"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- Training config -->
+<div class="card">
+  <div class="card-title">🔧 Training Configuration</div>
+  <div class="grid-3">
+    {% set configs = [
+      ('Target Variable', 'PM2.5 concentration (μg/m³)', '🎯'),
+      ('Train / Test Split', '80% Train · 20% Test', '✂️'),
+      ('Cross Validation', '5-Fold CV', '🔄'),
+      ('Feature Set', '17 input features after encoding', '📋'),
+      ('Hyperparameter Tuning', 'GridSearchCV (pending)', '🔍'),
+      ('Random State', '42 (reproducibility)', '🎲'),
+    ] %}
+    {% for label, val, icon in configs %}
+    <div style="padding:14px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+      <div style="font-size:1.4rem;margin-bottom:6px;">{{ icon }}</div>
+      <div style="font-size:.78rem;color:#64748b;font-weight:600;margin-bottom:3px;">{{ label }}</div>
+      <div style="font-size:.88rem;font-weight:700;">{{ val }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

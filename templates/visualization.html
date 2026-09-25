@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Visualization{% endblock %}
+{% block page_title %}EDA Visualizations{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h1>📈 EDA Visualizations</h1>
+  <p>Charts generated from the Aotizhongxin air quality dataset. Click any chart to expand.</p>
+</div>
+
+<!-- Filter tabs -->
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+  {% for cat in categories %}
+  <a href="{{ url_for('visualization') }}?cat={{ cat }}"
+     class="btn {% if cat == selected_cat %}btn-primary{% else %}btn-outline{% endif %}"
+     style="font-size:.8rem;padding:7px 14px;">
+    {{ cat }}
+  </a>
+  {% endfor %}
+</div>
+
+{% if images %}
+<!-- Image grid -->
+<div class="img-grid">
+  {% for img in images %}
+  <div class="img-card">
+    <img src="{{ url_for('output_file', filename=img.filename) }}"
+         alt="{{ img.label }}"
+         loading="lazy" />
+    <div class="img-card-body">{{ img.label }}</div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="alert alert-warning">
+  ⚠️ No charts found for this category. Run the EDA script to generate them.
+</div>
+{% endif %}
+
+{% endblock %}
