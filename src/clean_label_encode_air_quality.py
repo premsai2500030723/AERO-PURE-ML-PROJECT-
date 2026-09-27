@@ -1,3 +1,25 @@
+"""
+clean_label_encode_air_quality.py
+==================================
+Loads the raw Aotizhongxin air quality dataset, performs cleaning
+(deduplication, missing-value imputation) and applies **Label Encoding**
+to all categorical columns (wd, station).
+
+Output
+------
+dataset/clean_label_encode_air_quality.csv
+
+Usage
+-----
+    python src/clean_label_encode_air_quality.py
+
+Notes
+-----
+- The original raw CSV is never modified; a copy is used throughout.
+- LabelEncoder assigns an integer rank to each unique category value.
+- Fitting is done per-column; encoders are stored in label_encoders dict.
+"""
+
 import pandas as pd
 import numpy as np
 
