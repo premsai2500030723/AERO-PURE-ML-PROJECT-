@@ -325,3 +325,5 @@ plt.suptitle("Histogram of Preprocessed Air Quality Dataset")
 plt.tight_layout()
 
 plt.show()
+
+# reviewed: scaling methods v1.1
