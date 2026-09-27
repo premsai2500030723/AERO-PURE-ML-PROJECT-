@@ -36,7 +36,7 @@ import seaborn as sns
 
 
 # =====================================================
-# CONFIGURATION
+# CONFIGURATION  (update paths below before running)
 # =====================================================
 
 DATASET_PATH = r"C:\Users\pream\PycharmProjects\ML- project\dataset\PRSA_Data_Aotizhongxin_raw.csv"
@@ -381,3 +381,4 @@ print("\n" + "=" * 60)
 print("EDA Completed Successfully.")
 print("=" * 60)
 print(f"Output Folder: {OUTPUT_FOLDER}")
+
