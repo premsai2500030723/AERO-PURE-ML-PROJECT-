@@ -1,3 +1,26 @@
+"""
+clean_embedding_encode_air_quality.py
+=======================================
+Loads the raw Aotizhongxin air quality dataset, performs cleaning
+(deduplication, missing-value imputation) and applies **Embedding Encoding**
+to categorical columns using a lightweight dense representation.
+
+Output
+------
+dataset/clean_embedded_encode_air_quality.csv
+
+Usage
+-----
+    python src/clean_embedding_encode_air_quality.py
+
+Notes
+-----
+- The original raw CSV is never modified; a copy is used throughout.
+- Each category is mapped to a low-dimensional float vector learned from
+  co-occurrence statistics (a simplified embedding lookup approach).
+- Best suited as a feature extraction step for deep learning pipelines.
+"""
+
 import pandas as pd
 import numpy as np
 
