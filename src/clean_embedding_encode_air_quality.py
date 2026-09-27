@@ -191,3 +191,5 @@ print("======================================")
 # The original dataset is cleaned by filling missing values and converting the categorical
 # columns wd and station into 3-dimensional numerical embedding vectors,
 # making the dataset fully numerical and ready for machine-learning processing.
+
+# reviewed: embedding encoding v1.1
