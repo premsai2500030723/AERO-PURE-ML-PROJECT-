@@ -6,76 +6,62 @@
 
 <div class="page-header">
   <h1>⚙️ Data Preprocessing</h1>
-  <p>Step-by-step pipeline applied to clean and prepare the dataset for modelling.</p>
+  <p>Step-by-step pipeline applied to clean and prepare the dataset for machine learning.</p>
 </div>
 
-<!-- Summary cards -->
-<div class="stats-grid" style="margin-bottom:28px;">
-  <div class="stat-card">
-    <div class="stat-icon blue">🔢</div>
-    <div>
-      <div class="stat-value">0</div>
-      <div class="stat-label">Duplicates (after clean)</div>
-    </div>
+<!-- Summary stat cards -->
+<div class="stats-grid" style="margin-bottom:22px;">
+  {% set kpis = [
+    ('blue',  '🔢','0',    'Duplicates After Clean'),
+    ('green', '✅','0',    'Missing Values After Fill'),
+    ('amber', '🏷️','5',   'Encoding Methods'),
+    ('purple','📐','3',    'Scaling Strategies'),
+    ('red',   '📁','6',   'Output Dataset Files'),
+    ('cyan',  '⚡','14',  'Pipeline Steps'),
+  ] %}
+  {% for color, icon, val, label in kpis %}
+  <div class="stat-card {{ color }}">
+    <div class="stat-icon {{ color }}">{{ icon }}</div>
+    <div><div class="stat-value">{{ val }}</div><div class="stat-label">{{ label }}</div></div>
   </div>
-  <div class="stat-card">
-    <div class="stat-icon green">✅</div>
-    <div>
-      <div class="stat-value">0</div>
-      <div class="stat-label">Missing Values (after fill)</div>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon amber">🏷️</div>
-    <div>
-      <div class="stat-value">5</div>
-      <div class="stat-label">Encoding Methods</div>
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon purple">📐</div>
-    <div>
-      <div class="stat-value">3</div>
-      <div class="stat-label">Scaling Strategies</div>
-    </div>
-  </div>
+  {% endfor %}
 </div>
 
-<div class="grid-2" style="margin-bottom:24px;">
+<div class="grid-2" style="margin-bottom:22px;">
 
-  <!-- Pipeline steps -->
+  <!-- Numbered step list -->
   <div class="card">
-    <div class="card-title">🔄 Preprocessing Pipeline</div>
+    <div class="card-title">🔄 Preprocessing Pipeline Steps</div>
     <ul class="step-list">
       {% set steps = [
         ('Load Raw Dataset',
-         'Read PRSA_Data_Aotizhongxin_raw.csv using pandas. Shape: (420768, 18).'),
-        ('Identify Missing Values',
-         'Counted nulls per column; generated Missing_Values_Heatmap.png and Missing_Values_Report.csv.'),
-        ('Remove Duplicates',
+         'Read PRSA_Data_Aotizhongxin_raw.csv via pandas. Shape: (420,768 × 18).'),
+        ('Inspect & Identify Missing Values',
+         'Counted nulls per column; exported Missing_Values_Report.csv.'),
+        ('Remove Duplicate Rows',
          'Dropped exact duplicate rows using DataFrame.drop_duplicates().'),
         ('Fill Numeric NaNs → Median',
-         'Applied column-wise median imputation for all int/float columns.'),
+         'Column-wise median imputation for all int64/float64 columns.'),
         ('Fill Categorical NaNs → Mode',
-         'Applied mode fill for object/category columns (wd, station).'),
+         'Mode-fill for object/category columns (wd, station).'),
         ('Strip & Lowercase Strings',
          'Normalised categorical strings to avoid case-mismatch issues.'),
         ('Label Encoding',
-         'Encoded wd and station with sklearn LabelEncoder.'),
+         'Encoded wd & station with sklearn LabelEncoder → saved CSV.'),
         ('One-Hot Encoding',
-         'Expanded wd into binary columns with get_dummies(drop_first=True).'),
+         'Expanded wd into binary columns with pd.get_dummies(drop_first=True).'),
         ('Ordinal Encoding',
-         'Assigned integer ranks to wind direction categories by frequency.'),
+         'Assigned integer ranks to wind direction by frequency order.'),
         ('Target Encoding',
-         'Replaced categories with mean PM2.5 target value per group.'),
+         'Replaced categories with mean PM2.5 value per group.'),
         ('Embedding Encoding',
-         'Used small dense-layer representation for high-cardinality column.'),
+         'Dense-layer representation for high-cardinality categorical column.'),
         ('Standard Scaling',
-         'Applied StandardScaler to all numeric columns for model readiness.'),
+         'Applied StandardScaler (mean=0, std=1) to all numeric columns.'),
         ('Min-Max Normalisation',
          'Rescaled features to [0, 1] range for distance-based algorithms.'),
         ('Save Cleaned Datasets',
-         'Exported multiple CSV variants to the /dataset folder.'),
+         'Exported 6 CSV variants to the /dataset folder.'),
       ] %}
       {% for title, desc in steps %}
       <li class="step-item">
@@ -89,29 +75,28 @@
     </ul>
   </div>
 
-  <!-- Encoding comparison -->
-  <div style="display:flex;flex-direction:column;gap:20px;">
+  <!-- Right column: tables -->
+  <div style="display:flex;flex-direction:column;gap:18px;">
 
+    <!-- Encoding comparison -->
     <div class="card">
-      <div class="card-title">🏷️ Encoding Methods Comparison</div>
+      <div class="card-title">🏷️ Encoding Methods</div>
       <div class="table-wrapper">
         <table>
-          <thead>
-            <tr><th>Method</th><th>File</th><th>Best For</th></tr>
-          </thead>
+          <thead><tr><th>Method</th><th>Best For</th><th>Output File</th></tr></thead>
           <tbody>
             {% set enc = [
-              ('Label Encoding',    'clean_label_encode_air_quality.csv',    'Tree models'),
-              ('One-Hot Encoding',  'clean_one_hot_encoding_air_quality.csv','Linear models'),
-              ('Ordinal Encoding',  'clean_ordinal_encode_air_quality.py',   'Ordered cats'),
-              ('Target Encoding',   'clean_target_encode_air_quality.py',    'High cardinality'),
-              ('Embedding Encoding','clean_embedded_encode_air_quality.csv', 'Deep learning'),
+              ('Label Encoding',    'Tree models',     'clean_label_encode…csv',     'blue'),
+              ('One-Hot Encoding',  'Linear models',   'clean_one_hot_…csv',         'purple'),
+              ('Ordinal Encoding',  'Ordered cats',    'clean_ordinal_…py',          'amber'),
+              ('Target Encoding',   'High cardinality','clean_target_…py',           'red'),
+              ('Embedding',         'Deep learning',   'clean_embedded_…csv',        'cyan'),
             ] %}
-            {% for method, file, best in enc %}
+            {% for method, best, file, color in enc %}
             <tr>
-              <td style="font-weight:600;">{{ method }}</td>
-              <td style="font-family:monospace;font-size:.76rem;">{{ file }}</td>
-              <td><span class="tag tag-blue" style="font-size:.72rem;">{{ best }}</span></td>
+              <td style="font-weight:700;font-size:.82rem;">{{ method }}</td>
+              <td><span class="tag tag-{{ color }}" style="font-size:.7rem;">{{ best }}</span></td>
+              <td style="font-family:monospace;font-size:.72rem;color:#64748b;">{{ file }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -119,54 +104,53 @@
       </div>
     </div>
 
+    <!-- Scaling methods -->
     <div class="card">
-      <div class="card-title">📐 Scaling Methods</div>
+      <div class="card-title">📐 Scaling Strategies</div>
       <div class="table-wrapper">
         <table>
-          <thead>
-            <tr><th>Method</th><th>Range</th><th>Use Case</th></tr>
-          </thead>
+          <thead><tr><th>Scaler</th><th>Range</th><th>Best For</th></tr></thead>
           <tbody>
             <tr>
-              <td style="font-weight:600;">StandardScaler</td>
-              <td>Mean=0, Std=1</td>
-              <td>SVM, Logistic Reg.</td>
+              <td style="font-weight:700;">StandardScaler</td>
+              <td><span class="tag tag-blue">mean=0 std=1</span></td>
+              <td style="font-size:.82rem;">SVM, Logistic Reg.</td>
             </tr>
             <tr>
-              <td style="font-weight:600;">MinMaxScaler</td>
-              <td>[0, 1]</td>
-              <td>Neural Networks</td>
+              <td style="font-weight:700;">MinMaxScaler</td>
+              <td><span class="tag tag-green">[0, 1]</span></td>
+              <td style="font-size:.82rem;">Neural Networks</td>
             </tr>
             <tr>
-              <td style="font-weight:600;">RobustScaler</td>
-              <td>IQR-based</td>
-              <td>Outlier-heavy data</td>
+              <td style="font-weight:700;">RobustScaler</td>
+              <td><span class="tag tag-amber">IQR-based</span></td>
+              <td style="font-size:.82rem;">Outlier-heavy data</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
 
+    <!-- Shape before/after -->
     <div class="card">
-      <div class="card-title">📊 Data Shape Before / After</div>
-      {% set shapes = [
-        ('Raw','420 768','18','—'),
-        ('After drop duplicates','420 768','18','0 removed'),
-        ('After median fill','420 768','18','0 nulls'),
-        ('After label encode','420 768','18','wd+station encoded'),
-        ('After one-hot','420 768','33','wd expanded'),
-        ('After scaling','420 768','18','values normalised'),
-      ] %}
+      <div class="card-title">📊 Data Shape — Before vs After</div>
       <div class="table-wrapper">
         <table>
-          <thead><tr><th>Stage</th><th>Rows</th><th>Cols</th><th>Note</th></tr></thead>
+          <thead><tr><th>Stage</th><th>Rows</th><th>Cols</th></tr></thead>
           <tbody>
-            {% for stage, rows, cols, note in shapes %}
+            {% set shapes = [
+              ('Raw input',         '420,768','18'),
+              ('After dedup',       '420,768','18'),
+              ('After null fill',   '420,768','18'),
+              ('After label encode','420,768','18'),
+              ('After one-hot',     '420,768','33'),
+              ('After scaling',     '420,768','18'),
+            ] %}
+            {% for stage, rows, cols in shapes %}
             <tr>
-              <td style="font-weight:600;">{{ stage }}</td>
-              <td>{{ rows }}</td>
-              <td>{{ cols }}</td>
-              <td style="color:#64748b;font-size:.8rem;">{{ note }}</td>
+              <td style="font-weight:600;font-size:.82rem;">{{ stage }}</td>
+              <td><span class="tag tag-blue" style="font-size:.72rem;">{{ rows }}</span></td>
+              <td><span class="tag tag-purple" style="font-size:.72rem;">{{ cols }}</span></td>
             </tr>
             {% endfor %}
           </tbody>
