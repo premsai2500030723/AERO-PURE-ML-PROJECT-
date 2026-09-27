@@ -1,3 +1,26 @@
+"""
+clean_one_hot_encoding_air_quality.py
+=======================================
+Loads the raw Aotizhongxin air quality dataset, performs cleaning
+(deduplication, missing-value imputation) and applies **One-Hot Encoding**
+to all categorical columns (wd, station).
+
+Output
+------
+dataset/clean_one_hot_encoding_air_quality.csv
+
+Usage
+-----
+    python src/clean_one_hot_encoding_air_quality.py
+
+Notes
+-----
+- The original raw CSV is never modified; a copy is used throughout.
+- OneHotEncoder expands each categorical column into binary indicator columns.
+- Encoded feature names follow the pattern: <original_col>_<category_value>.
+- Resulting dataset has more columns than the raw input (wd has 16+ categories).
+"""
+
 import pandas as pd
 import numpy as np
 
