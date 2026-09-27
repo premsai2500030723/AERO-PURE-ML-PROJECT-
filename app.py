@@ -18,6 +18,8 @@ BASE_DIR    = os.path.dirname(os.path.abspath(__file__))
 DATASET_DIR = os.path.join(BASE_DIR, "dataset")
 OUTPUT_DIR  = os.path.join(BASE_DIR, "output")
 
+APP_VERSION = "1.0.0"
+
 app = Flask(__name__)
 app.secret_key = "aq_ml_secret_2026"
 app.jinja_env.globals.update(zip=zip, enumerate=enumerate)
@@ -363,3 +365,4 @@ if __name__ == "__main__":
     print("  http://127.0.0.1:5000")
     print("=" * 55)
     app.run(debug=True, port=5000)
+
