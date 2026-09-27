@@ -1,3 +1,33 @@
+"""
+EDA_Analysis_air_quality.py
+=============================
+Performs full **Exploratory Data Analysis (EDA)** on the raw Aotizhongxin
+air quality dataset and saves all charts + CSV reports to the output/ folder.
+
+Generated Outputs
+-----------------
+- Correlation_Heatmap.png        — pairwise correlation of numeric columns
+- Correlation_Matrix.csv         — raw correlation values
+- Missing_Values_Heatmap.png     — visual null-map across all columns
+- Missing_Values_Report.csv      — missing count & percentage per column
+- Statistical_Summary.csv        — describe() output for all columns
+- <col>_Histogram.png            — distribution histogram per numeric column
+- <col>_Boxplot.png              — boxplot per numeric column
+- <col>_Outlier.png              — outlier-highlighted boxplot per numeric col
+- <col>_CountPlot.png            — count plot for categorical columns
+- Pollution_PairPlot.png         — pairplot of PM2.5, PM10, SO2, NO2, CO, O3
+- Year_vs_PM25_Scatter.png       — year-wise PM2.5 scatter plot
+
+Usage
+-----
+    python src/EDA_Analysis_air_quality.py
+
+Notes
+-----
+- All output files are written to OUTPUT_FOLDER (see CONFIGURATION section).
+- matplotlib backend is non-interactive; plt.show() calls are avoided.
+"""
+
 import os
 import pandas as pd
 import numpy as np
