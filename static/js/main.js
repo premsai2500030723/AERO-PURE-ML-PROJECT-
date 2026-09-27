@@ -1,3 +1,6 @@
+// AQ ML Dashboard v1.0 loaded
+console.log('%c AQ ML Dashboard ', 'background:#4f46e5;color:#fff;padding:3px 8px;border-radius:4px;font-weight:bold;');
+
 // Air Quality ML Dashboard — main.js  (UI v2)
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -162,3 +165,4 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 });
+
