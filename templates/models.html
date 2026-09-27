@@ -9,99 +9,108 @@
   <p>Model candidates, architecture details and performance metrics for PM2.5 prediction.</p>
 </div>
 
-<div class="alert alert-info">
-  ℹ️ Model training is pending. The metrics below are indicative / placeholder values for the prototype.
+<div class="alert alert-info" style="margin-bottom:20px;">
+  ℹ️ Model training is <strong>pending</strong>. Metrics shown are indicative prototype values.
 </div>
 
 <!-- Model cards -->
-<div class="grid-3" style="margin-bottom:24px;">
-
-  {% set models = [
-    ('Linear Regression',   '📉', 'blue',
-     'Baseline linear model assuming a linear relationship between features and PM2.5.',
-     '0.68', '18.4', '24.2', 'Baseline'),
-    ('Random Forest',       '🌲', 'green',
-     'Ensemble of 100 decision trees with bootstrap sampling and feature randomness.',
-     '0.87', '10.1', '14.8', 'Best'),
-    ('XGBoost',             '⚡', 'amber',
-     'Gradient-boosted trees with regularisation (L1/L2). Fast and accurate.',
-     '0.85', '11.2', '15.6', 'Competitive'),
+<div class="grid-3" style="margin-bottom:22px;">
+  {% set models_data = [
+    ('Linear Regression','📉','#3b82f6','#1d4ed8',
+     'Baseline linear model. Assumes linear relationship between features and PM2.5 target.',
+     '0.68','18.4','24.2','Baseline'),
+    ('Random Forest','🌲','#10b981','#047857',
+     'Ensemble of 100 decision trees with bootstrap sampling and random feature selection.',
+     '0.87','10.1','14.8','Best'),
+    ('XGBoost','⚡','#f59e0b','#b45309',
+     'Gradient-boosted trees with L1/L2 regularisation. Fast convergence and high accuracy.',
+     '0.85','11.2','15.6','Runner-up'),
   ] %}
-
-  {% for name, icon, color, desc, r2, mae, rmse, badge in models %}
-  <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:1.6rem;">{{ icon }}</span>
-        <span style="font-size:1rem;font-weight:700;">{{ name }}</span>
+  {% for name, icon, c1, c2, desc, r2, mae, rmse, badge in models_data %}
+  <div class="card" style="padding:0;overflow:hidden;">
+    <!-- Gradient header -->
+    <div style="background:linear-gradient(135deg,{{ c1 }},{{ c2 }});
+                padding:20px;color:#fff;position:relative;overflow:hidden;">
+      <div style="position:absolute;right:-15px;top:-15px;width:80px;height:80px;
+                  background:rgba(255,255,255,.1);border-radius:50%;"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.6rem;">{{ icon }}</span>
+          <span style="font-size:.95rem;font-weight:700;">{{ name }}</span>
+        </div>
+        <span style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);
+                     color:#fff;font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:20px;">
+          {{ badge }}
+        </span>
       </div>
-      <span class="tag {% if badge=='Best' %}tag-green{% elif badge=='Baseline' %}tag-amber{% else %}tag-blue{% endif %}">
-        {{ badge }}
-      </span>
     </div>
-    <p style="font-size:.83rem;color:#64748b;margin-bottom:16px;line-height:1.6;">{{ desc }}</p>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
-      <div style="background:#f8fafc;border-radius:8px;padding:10px;">
-        <div style="font-size:1.1rem;font-weight:700;">{{ r2 }}</div>
-        <div style="font-size:.72rem;color:#64748b;">R² Score</div>
-      </div>
-      <div style="background:#f8fafc;border-radius:8px;padding:10px;">
-        <div style="font-size:1.1rem;font-weight:700;">{{ mae }}</div>
-        <div style="font-size:.72rem;color:#64748b;">MAE</div>
-      </div>
-      <div style="background:#f8fafc;border-radius:8px;padding:10px;">
-        <div style="font-size:1.1rem;font-weight:700;">{{ rmse }}</div>
-        <div style="font-size:.72rem;color:#64748b;">RMSE</div>
+    <!-- Body -->
+    <div style="padding:18px;">
+      <p style="font-size:.81rem;color:#64748b;line-height:1.65;margin-bottom:16px;">{{ desc }}</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+        {% for metric_label, metric_val, bg in [('R² Score',r2,'#eff6ff'),('MAE',mae,'#f0fdf4'),('RMSE',rmse,'#faf5ff')] %}
+        <div style="background:{{ bg }};border-radius:8px;padding:10px 6px;">
+          <div style="font-size:1.1rem;font-weight:800;letter-spacing:-.02em;">{{ metric_val }}</div>
+          <div style="font-size:.68rem;color:#64748b;margin-top:2px;font-weight:600;">{{ metric_label }}</div>
+        </div>
+        {% endfor %}
       </div>
     </div>
   </div>
   {% endfor %}
-
 </div>
 
-<!-- Comparison table + Feature importance -->
-<div class="grid-2" style="margin-bottom:24px;">
+<!-- Comparison + Feature importance -->
+<div class="grid-2" style="margin-bottom:22px;">
 
   <div class="card">
-    <div class="card-title">📊 Model Comparison Table</div>
+    <div class="card-title">📊 Full Model Comparison</div>
     <div class="table-wrapper">
       <table>
         <thead>
           <tr><th>Model</th><th>R²</th><th>MAE</th><th>RMSE</th><th>Train Time</th></tr>
         </thead>
         <tbody>
-          <tr><td>Linear Regression</td><td>0.68</td><td>18.4</td><td>24.2</td><td>~1s</td></tr>
-          <tr><td>Random Forest</td>    <td style="color:#22c55e;font-weight:700;">0.87</td><td>10.1</td><td>14.8</td><td>~45s</td></tr>
-          <tr><td>XGBoost</td>          <td>0.85</td><td>11.2</td><td>15.6</td><td>~12s</td></tr>
-          <tr><td>Ridge Regression</td> <td>0.70</td><td>17.9</td><td>23.8</td><td>~1s</td></tr>
-          <tr><td>Decision Tree</td>    <td>0.79</td><td>13.5</td><td>18.4</td><td>~3s</td></tr>
+          {% set rows = [
+            ('Linear Regression','0.68','18.4','24.2','~1s',  False),
+            ('Random Forest',    '0.87','10.1','14.8','~45s', True),
+            ('XGBoost',          '0.85','11.2','15.6','~12s', False),
+            ('Ridge Regression', '0.70','17.9','23.8','~1s',  False),
+            ('Decision Tree',    '0.79','13.5','18.4','~3s',  False),
+          ] %}
+          {% for model, r2, mae, rmse, time, best in rows %}
+          <tr {% if best %}style="background:#f0fdf4;"{% endif %}>
+            <td style="font-weight:700;">
+              {{ model }}
+              {% if best %}<span class="tag tag-green" style="font-size:.65rem;margin-left:4px;">Best</span>{% endif %}
+            </td>
+            <td style="font-weight:{% if best %}800{% else %}400{% endif %};
+                       color:{% if best %}#059669{% else %}inherit{% endif %};">{{ r2 }}</td>
+            <td>{{ mae }}</td>
+            <td>{{ rmse }}</td>
+            <td style="color:#64748b;font-size:.8rem;">{{ time }}</td>
+          </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 
   <div class="card">
-    <div class="card-title">🏆 Top Feature Importances (Random Forest)</div>
-    {% set features = [
-      ('PM10',  0.31),
-      ('CO',    0.18),
-      ('TEMP',  0.12),
-      ('NO2',   0.10),
-      ('hour',  0.08),
-      ('DEWP',  0.07),
-      ('month', 0.06),
-      ('WSPM',  0.04),
-      ('PRES',  0.03),
-      ('SO2',   0.01),
+    <div class="card-title">🏆 Feature Importances (Random Forest)</div>
+    {% set feats = [
+      ('PM10', .31,'#3b82f6'),('CO',.18,'#06b6d4'),('TEMP',.12,'#8b5cf6'),
+      ('NO2',.10,'#f59e0b'),('hour',.08,'#10b981'),('DEWP',.07,'#ef4444'),
+      ('month',.06,'#f97316'),('WSPM',.04,'#ec4899'),('PRES',.03,'#6366f1'),('SO2',.01,'#14b8a6'),
     ] %}
-    {% for feat, imp in features %}
+    {% for feat, imp, color in feats %}
     <div style="margin-bottom:10px;">
-      <div style="display:flex;justify-content:space-between;font-size:.84rem;margin-bottom:3px;">
-        <span style="font-weight:600;">{{ feat }}</span>
-        <span style="color:#64748b;">{{ (imp*100)|int }}%</span>
+      <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px;">
+        <span style="font-weight:700;">{{ feat }}</span>
+        <span style="color:#64748b;font-weight:600;">{{ (imp*100)|int }}%</span>
       </div>
       <div class="progress">
-        <div class="progress-bar" style="width:{{ (imp*100)|int }}%;background:#3b82f6;"></div>
+        <div class="progress-bar" style="width:{{ (imp*100)|int }}%;background:{{ color }};"></div>
       </div>
     </div>
     {% endfor %}
@@ -114,18 +123,19 @@
   <div class="card-title">🔧 Training Configuration</div>
   <div class="grid-3">
     {% set configs = [
-      ('Target Variable', 'PM2.5 concentration (μg/m³)', '🎯'),
-      ('Train / Test Split', '80% Train · 20% Test', '✂️'),
-      ('Cross Validation', '5-Fold CV', '🔄'),
-      ('Feature Set', '17 input features after encoding', '📋'),
-      ('Hyperparameter Tuning', 'GridSearchCV (pending)', '🔍'),
-      ('Random State', '42 (reproducibility)', '🎲'),
+      ('🎯','Target Variable',   'PM2.5 concentration (µg/m³)'),
+      ('✂️','Train/Test Split',  '80% Train · 20% Test'),
+      ('🔄','Cross-Validation',  '5-Fold CV'),
+      ('📋','Feature Count',     '17 input features post-encoding'),
+      ('🔍','Hyperparameter Tuning','GridSearchCV (pending)'),
+      ('🎲','Random State',      '42 for reproducibility'),
     ] %}
-    {% for label, val, icon in configs %}
-    <div style="padding:14px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+    {% for icon, label, val in configs %}
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px;">
       <div style="font-size:1.4rem;margin-bottom:6px;">{{ icon }}</div>
-      <div style="font-size:.78rem;color:#64748b;font-weight:600;margin-bottom:3px;">{{ label }}</div>
-      <div style="font-size:.88rem;font-weight:700;">{{ val }}</div>
+      <div style="font-size:.72rem;color:#64748b;font-weight:600;margin-bottom:3px;
+                  text-transform:uppercase;letter-spacing:.04em;">{{ label }}</div>
+      <div style="font-size:.86rem;font-weight:700;">{{ val }}</div>
     </div>
     {% endfor %}
   </div>
