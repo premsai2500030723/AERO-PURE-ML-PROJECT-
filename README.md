@@ -218,3 +218,5 @@ This project is licensed under the MIT License — see [LICENSE](LICENSE) for de
 
 - Dataset: [Beijing Multi-Site Air Quality Data — UCI ML Repository](https://archive.ics.uci.edu/dataset/501/beijing+multi+site+air+quality+data)
 - Station: Aotizhongxin Environmental Monitoring Station, Beijing
+
+> **Run:** `python app.py` then open http://127.0.0.1:5000
