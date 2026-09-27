@@ -1,3 +1,28 @@
+"""
+Dataset_Load_identify_missing_values_air_quality.py
+=====================================================
+Loads the raw Aotizhongxin air quality CSV and performs initial inspection:
+
+  - Shape, column names, data types
+  - Missing value count per column
+  - Duplicate row count
+  - Numeric vs categorical column identification
+  - Missing Values Heatmap (saved to output/)
+
+Output
+------
+output/Missing_Values_Heatmap.png
+
+Usage
+-----
+    python src/Dataset_Load_identify_missing_values_air_quality.py
+
+Notes
+-----
+- This is a read-only inspection script; no data is modified or saved as CSV.
+- Run this first to understand the raw dataset before preprocessing.
+"""
+
 import os
 import pandas as pd
 import numpy as np
