@@ -1,3 +1,27 @@
+"""
+clean_minmax_stand_norma_air_quality.py
+=========================================
+Loads the cleaned air quality dataset and applies three scaling strategies:
+
+  1. **StandardScaler**  — zero mean, unit variance  (z-score normalisation)
+  2. **MinMaxScaler**    — rescales features to [0, 1]
+  3. **Normalizer**      — scales each sample to unit norm (L2)
+
+Output
+------
+dataset/clean_air_quality_scaling_M2.csv   (StandardScaler result)
+
+Usage
+-----
+    python src/clean_minmax_stand_norma_air_quality.py
+
+Notes
+-----
+- Input is the Method-2 cleaned CSV (no categorical columns).
+- Comparison plots are saved to the output/ folder.
+- StandardScaler result is the primary output used by ML models.
+"""
+
 import pandas as pd
 import numpy as np
 
