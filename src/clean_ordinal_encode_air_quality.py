@@ -1,3 +1,26 @@
+"""
+clean_ordinal_encode_air_quality.py
+=====================================
+Loads the raw Aotizhongxin air quality dataset, performs cleaning
+(deduplication, missing-value imputation) and applies **Ordinal Encoding**
+to all categorical columns (wd, station).
+
+Output
+------
+dataset/clean_ordinal_encode_air_quality.csv
+
+Usage
+-----
+    python src/clean_ordinal_encode_air_quality.py
+
+Notes
+-----
+- The original raw CSV is never modified; a copy is used throughout.
+- OrdinalEncoder assigns integer ranks based on lexicographic order by default.
+- Encoded columns are renamed with the prefix 'Ordinal_' for clarity.
+- Best suited for tree-based models that can handle ordinal relationships.
+"""
+
 import pandas as pd
 import numpy as np
 
