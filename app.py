@@ -20,7 +20,7 @@ OUTPUT_DIR  = os.path.join(BASE_DIR, "output")
 
 app = Flask(__name__)
 app.secret_key = "aq_ml_secret_2026"
-app.jinja_env.globals.update(zip=zip)
+app.jinja_env.globals.update(zip=zip, enumerate=enumerate)
 
 
 # ─────────────────────────────────────────────────────────────

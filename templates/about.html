@@ -6,86 +6,87 @@
 
 <div class="page-header">
   <h1>ℹ️ About This Project</h1>
-  <p>Background, objectives, tools and dataset information.</p>
+  <p>Background, objectives, dataset details and technology stack.</p>
 </div>
 
-<div class="grid-2" style="margin-bottom:24px;">
-
-  <!-- Project info -->
-  <div class="card">
-    <div style="font-size:2.5rem;margin-bottom:12px;">🌫️</div>
-    <h2 style="font-size:1.2rem;font-weight:700;margin-bottom:10px;">
+<!-- Hero info card -->
+<div style="background:linear-gradient(135deg,#1e1b4b,#1e3a5f);border-radius:16px;
+            padding:36px 40px;color:#fff;margin-bottom:22px;position:relative;overflow:hidden;">
+  <div style="position:absolute;right:-30px;top:-30px;width:200px;height:200px;
+              background:radial-gradient(circle,rgba(99,102,241,.3),transparent 70%);"></div>
+  <div style="position:relative;z-index:1;">
+    <div style="font-size:2.8rem;margin-bottom:10px;">🌫️</div>
+    <h2 style="font-size:1.4rem;font-weight:800;margin-bottom:10px;letter-spacing:-.02em;">
       Air Quality Analysis &amp; Prediction
     </h2>
-    <p style="font-size:.88rem;color:#64748b;line-height:1.8;margin-bottom:16px;">
-      This project performs comprehensive exploratory data analysis (EDA) and machine learning
-      modelling on hourly air quality measurements from the Aotizhongxin monitoring station
-      in Beijing, China. The goal is to understand pollution patterns and build predictive
-      models for PM2.5 concentration.
+    <p style="opacity:.75;font-size:.88rem;max-width:600px;line-height:1.75;margin-bottom:16px;">
+      This project performs comprehensive exploratory data analysis and machine learning
+      modelling on hourly air quality measurements from the Aotizhongxin monitoring
+      station in Beijing. The goal is to understand pollution patterns and build
+      predictive models for PM2.5 concentration.
     </p>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;">
-      {% for tag in ['Python', 'Pandas', 'Scikit-learn', 'Seaborn', 'Matplotlib',
-                     'Flask', 'Machine Learning', 'EDA', 'Air Quality'] %}
-      <span class="tag tag-blue">{{ tag }}</span>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;">
+      {% for tag in ['Python 3.11','Pandas','Scikit-learn','Seaborn','Matplotlib','Flask','EDA','Air Quality','ML'] %}
+      <span style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+                   color:#fff;font-size:.7rem;font-weight:600;padding:3px 10px;border-radius:20px;">
+        {{ tag }}
+      </span>
       {% endfor %}
     </div>
   </div>
+</div>
+
+<div class="grid-2" style="margin-bottom:22px;">
 
   <!-- Dataset info -->
   <div class="card">
     <div class="card-title">📂 Dataset Information</div>
-    {% set ds_info = [
-      ('Source',     'Beijing Multi-Site Air Quality Dataset (UCI ML Repo)'),
-      ('Station',    'Aotizhongxin, Beijing, China'),
-      ('Period',     'March 2013 – February 2017 (4 years)'),
-      ('Frequency',  'Hourly measurements'),
-      ('Rows',       '~ 420,768'),
-      ('Columns',    '18 (temporal + pollutants + weather)'),
-      ('Target',     'PM2.5 concentration (μg/m³)'),
-      ('Format',     'CSV'),
+    {% set info = [
+      ('📍 Source',     'Beijing Multi-Site Air Quality (UCI ML Repo)'),
+      ('🏭 Station',    'Aotizhongxin, Beijing, China'),
+      ('📅 Period',     'March 2013 – February 2017 (4 years)'),
+      ('⏱️ Frequency', 'Hourly measurements'),
+      ('📊 Rows',       '~ 420,768 records'),
+      ('📋 Columns',    '18 (temporal + pollutants + weather)'),
+      ('🎯 Target',     'PM2.5 concentration (µg/m³)'),
+      ('💾 Format',     'CSV'),
     ] %}
-    <div class="table-wrapper">
-      <table>
-        <tbody>
-          {% for key, val in ds_info %}
-          <tr>
-            <td style="font-weight:600;color:#64748b;width:120px;">{{ key }}</td>
-            <td>{{ val }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-</div>
-
-<!-- Objectives -->
-<div class="card" style="margin-bottom:24px;">
-  <div class="card-title">🎯 Project Objectives</div>
-  <div class="grid-3">
-    {% set objectives = [
-      ('🔍', 'Explore & Understand',
-       'Perform full EDA to understand distributions, correlations and seasonal patterns.'),
-      ('🧹', 'Clean & Preprocess',
-       'Handle missing values, remove duplicates, encode categoricals, scale features.'),
-      ('🤖', 'Build Models',
-       'Train and compare multiple regression models to predict PM2.5 levels.'),
-      ('📊', 'Evaluate & Compare',
-       'Use R², MAE and RMSE to identify the best-performing model.'),
-      ('🔮', 'Predict',
-       'Deploy a simple prediction tool for real-time PM2.5 estimation.'),
-      ('📄', 'Document & Report',
-       'Generate charts and CSV reports summarising all findings.'),
-    ] %}
-    {% for icon, title, desc in objectives %}
-    <div style="padding:18px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
-      <div style="font-size:1.8rem;margin-bottom:8px;">{{ icon }}</div>
-      <h4 style="font-size:.9rem;font-weight:700;margin-bottom:6px;">{{ title }}</h4>
-      <p style="font-size:.82rem;color:#64748b;line-height:1.6;">{{ desc }}</p>
+    {% for key, val in info %}
+    <div style="display:flex;gap:14px;padding:9px 0;border-bottom:1px solid #f8fafc;align-items:flex-start;">
+      <span style="font-size:.8rem;font-weight:700;color:#64748b;width:130px;flex-shrink:0;">{{ key }}</span>
+      <span style="font-size:.84rem;">{{ val }}</span>
     </div>
     {% endfor %}
   </div>
+
+  <!-- Objectives -->
+  <div class="card">
+    <div class="card-title">🎯 Project Objectives</div>
+    {% set objectives = [
+      ('🔍','Explore & Understand',
+       'Full EDA to understand distributions, correlations and seasonal patterns.'),
+      ('🧹','Clean & Preprocess',
+       'Handle missing values, remove duplicates, encode categoricals, scale features.'),
+      ('🤖','Build Models',
+       'Train and compare multiple regression models to predict PM2.5 levels.'),
+      ('📊','Evaluate & Compare',
+       'Use R², MAE and RMSE to identify the best-performing model.'),
+      ('🔮','Predict',
+       'Deploy a prediction tool for real-time PM2.5 AQI estimation.'),
+      ('📄','Document & Report',
+       'Generate charts and CSV reports summarising all findings.'),
+    ] %}
+    {% for icon, title, desc in objectives %}
+    <div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #f8fafc;">
+      <span style="font-size:1.2rem;flex-shrink:0;">{{ icon }}</span>
+      <div>
+        <div style="font-size:.84rem;font-weight:700;margin-bottom:2px;">{{ title }}</div>
+        <div style="font-size:.78rem;color:#64748b;line-height:1.55;">{{ desc }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
 </div>
 
 <!-- Tech stack -->
@@ -93,24 +94,26 @@
   <div class="card-title">🛠️ Technology Stack</div>
   <div class="grid-3">
     {% set stack = [
-      ('Python 3.11',      '🐍', 'Core language'),
-      ('Pandas',           '🐼', 'Data manipulation'),
-      ('NumPy',            '🔢', 'Numerical computing'),
-      ('Scikit-learn',     '🤖', 'ML algorithms'),
-      ('Matplotlib',       '📉', 'Static charting'),
-      ('Seaborn',          '🎨', 'Statistical visualisation'),
-      ('Flask',            '🌐', 'Web framework'),
-      ('HTML / CSS',       '🖥️', 'Frontend templates'),
-      ('PyCharm',          '💻', 'IDE'),
+      ('🐍','Python 3.11',    'Core language'),
+      ('🐼','Pandas',         'Data manipulation'),
+      ('🔢','NumPy',          'Numerical computing'),
+      ('🤖','Scikit-learn',   'ML algorithms'),
+      ('📉','Matplotlib',     'Static charting'),
+      ('🎨','Seaborn',        'Statistical visualisation'),
+      ('🌐','Flask 3.1',      'Web framework'),
+      ('🖥️','HTML/CSS/JS',   'Frontend templates'),
+      ('💻','PyCharm',        'Development IDE'),
     ] %}
-    {% for name, icon, role in stack %}
-    <div style="display:flex;align-items:center;gap:12px;
-                padding:12px;background:#f8fafc;border-radius:8px;
-                border:1px solid #e2e8f0;">
+    {% for icon, name, role in stack %}
+    <div style="display:flex;align-items:center;gap:12px;padding:13px;
+                background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;
+                transition:box-shadow .2s;"
+         onmouseover="this.style.boxShadow='0 4px 14px rgba(0,0,0,.08)'"
+         onmouseout="this.style.boxShadow=''">
       <span style="font-size:1.5rem;">{{ icon }}</span>
       <div>
         <div style="font-size:.88rem;font-weight:700;">{{ name }}</div>
-        <div style="font-size:.76rem;color:#64748b;">{{ role }}</div>
+        <div style="font-size:.74rem;color:#64748b;">{{ role }}</div>
       </div>
     </div>
     {% endfor %}
