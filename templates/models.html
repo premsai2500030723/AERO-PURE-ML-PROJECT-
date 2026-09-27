@@ -99,9 +99,9 @@
   <div class="card">
     <div class="card-title">🏆 Feature Importances (Random Forest)</div>
     {% set feats = [
-      ('PM10', .31,'#3b82f6'),('CO',.18,'#06b6d4'),('TEMP',.12,'#8b5cf6'),
-      ('NO2',.10,'#f59e0b'),('hour',.08,'#10b981'),('DEWP',.07,'#ef4444'),
-      ('month',.06,'#f97316'),('WSPM',.04,'#ec4899'),('PRES',.03,'#6366f1'),('SO2',.01,'#14b8a6'),
+      ('PM10', 0.31,'#3b82f6'),('CO',0.18,'#06b6d4'),('TEMP',0.12,'#8b5cf6'),
+      ('NO2',0.10,'#f59e0b'),('hour',0.08,'#10b981'),('DEWP',0.07,'#ef4444'),
+      ('month',0.06,'#f97316'),('WSPM',0.04,'#ec4899'),('PRES',0.03,'#6366f1'),('SO2',0.01,'#14b8a6'),
     ] %}
     {% for feat, imp, color in feats %}
     <div style="margin-bottom:10px;">
