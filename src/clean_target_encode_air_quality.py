@@ -1,3 +1,27 @@
+"""
+clean_target_encode_air_quality.py
+====================================
+Loads the raw Aotizhongxin air quality dataset, performs cleaning
+(deduplication, missing-value imputation) and applies **Target (Mean) Encoding**
+to all categorical columns (wd, station) using PM2.5 as the target variable.
+
+Output
+------
+dataset/clean_target_encode_air_quality.csv
+
+Usage
+-----
+    python src/clean_target_encode_air_quality.py
+
+Notes
+-----
+- The original raw CSV is never modified; a copy is used throughout.
+- Each categorical value is replaced by the mean PM2.5 for that group.
+- Encoded columns are renamed with the prefix 'Target_' for clarity.
+- This method can introduce data leakage if not applied within CV folds
+  in a production pipeline — use with caution.
+"""
+
 import pandas as pd
 import numpy as np
 
