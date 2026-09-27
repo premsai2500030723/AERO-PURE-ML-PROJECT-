@@ -6,68 +6,69 @@
 
 <div class="page-header">
   <h1>📄 Reports</h1>
-  <p>View and download analysis reports generated from the dataset.</p>
+  <p>View and download generated analysis reports from the dataset.</p>
 </div>
 
-<!-- Available CSV reports -->
-<div class="card" style="margin-bottom:24px;">
-  <div class="card-title">📥 Downloadable CSV Reports</div>
-  <div class="table-wrapper">
-    <table>
-      <thead>
-        <tr>
-          <th>Report</th>
-          <th>Description</th>
-          <th>Size</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for report in csv_reports %}
-        <tr>
-          <td style="font-weight:600;">{{ report.name }}</td>
-          <td style="color:#64748b;font-size:.85rem;">{{ report.desc }}</td>
-          <td style="font-size:.82rem;">{{ report.size }}</td>
-          <td>
-            <a href="{{ url_for('download_report', filename=report.filename) }}"
-               class="btn btn-outline" style="padding:6px 12px;font-size:.78rem;">
-              ⬇ Download
-            </a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<!-- Download cards -->
+<div class="grid-3" style="margin-bottom:22px;">
+  {% if csv_reports %}
+    {% for report in csv_reports %}
+    <div class="card" style="border-top:3px solid #4f46e5;display:flex;flex-direction:column;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:42px;height:42px;border-radius:10px;
+                    background:linear-gradient(135deg,#eef2ff,#ddd6fe);
+                    display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
+          📊
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:.88rem;">{{ report.name }}</div>
+          <div style="font-size:.72rem;color:#94a3b8;">{{ report.size }}</div>
+        </div>
+      </div>
+      <p style="font-size:.8rem;color:#64748b;line-height:1.6;">{{ report.desc }}</p>
+      <a href="{{ url_for('download_report', filename=report.filename) }}"
+         class="btn btn-primary btn-sm" style="align-self:flex-start;">
+        ⬇ Download CSV
+      </a>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="alert alert-warning" style="grid-column:1/-1;">
+    ⚠️ No CSV reports found in the output folder. Run the EDA scripts first.
   </div>
+  {% endif %}
 </div>
 
-<!-- Summary stats preview -->
-<div class="grid-2" style="margin-bottom:24px;">
+<!-- Missing Values + Correlation side by side -->
+<div class="grid-2" style="margin-bottom:22px;">
 
   <div class="card">
-    <div class="card-title">📊 Missing Values Summary</div>
+    <div class="card-title">📊 Missing Values Per Column</div>
     {% if missing_report %}
     <div class="table-wrapper">
       <table>
-        <thead>
-          <tr><th>Column</th><th>Missing Count</th><th>Missing %</th></tr>
-        </thead>
+        <thead><tr><th>Column</th><th>Missing Count</th><th>Missing %</th></tr></thead>
         <tbody>
           {% for row in missing_report %}
           <tr>
-            <td style="font-weight:600;">{{ row.Column }}</td>
-            <td>{{ row.Missing_Count }}</td>
+            <td style="font-weight:700;">{{ row.Column }}</td>
+            <td style="font-weight:600;
+                       color:{% if row.Missing_Count|int > 0 %}#f59e0b{% else %}#10b981{% endif %};">
+              {{ row.Missing_Count }}
+            </td>
             <td>
               <div style="display:flex;align-items:center;gap:8px;">
-                <div class="progress" style="width:70px;">
+                <div class="progress" style="width:80px;">
                   <div class="progress-bar"
                        style="width:{{ [row.Missing_Percentage|float, 100]|min }}%;
                               background:{% if row.Missing_Percentage|float > 5 %}#ef4444
                               {% elif row.Missing_Percentage|float > 0 %}#f59e0b
-                              {% else %}#22c55e{% endif %};">
+                              {% else %}#10b981{% endif %};">
                   </div>
                 </div>
-                <span style="font-size:.78rem;">{{ '%.2f'|format(row.Missing_Percentage|float) }}%</span>
+                <span style="font-size:.76rem;font-weight:600;">
+                  {{ '%.2f'|format(row.Missing_Percentage|float) }}%
+                </span>
               </div>
             </td>
           </tr>
@@ -81,36 +82,27 @@
   </div>
 
   <div class="card">
-    <div class="card-title">🔗 Top Correlation Pairs (PM2.5)</div>
+    <div class="card-title">🔗 Top Correlations with PM2.5</div>
     {% if corr_report %}
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr><th>Feature</th><th>Correlation with PM2.5</th></tr>
-        </thead>
-        <tbody>
-          {% for row in corr_report %}
-          <tr>
-            <td style="font-weight:600;">{{ row.feature }}</td>
-            <td>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <div class="progress" style="width:80px;">
-                  <div class="progress-bar"
-                       style="width:{{ (row.value|float * 100)|abs|int }}%;
-                              background:{% if row.value|float >= 0 %}#3b82f6{% else %}#ef4444{% endif %};">
-                  </div>
-                </div>
-                <span style="font-size:.85rem;font-weight:600;
-                             color:{% if row.value|float >= 0 %}#1d4ed8{% else %}#b91c1c{% endif %};">
-                  {{ '%.3f'|format(row.value|float) }}
-                </span>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    {% for row in corr_report %}
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px;">
+        <span style="font-weight:700;">{{ row.feature }}</span>
+        <span style="font-weight:700;
+                     color:{% if row.value|float >= 0.5 %}#ef4444
+                     {% elif row.value|float >= 0 %}#3b82f6
+                     {% else %}#10b981{% endif %};">
+          {{ '%.3f'|format(row.value|float) }}
+        </span>
+      </div>
+      <div class="progress">
+        <div class="progress-bar"
+             style="width:{{ (row.value|float|abs * 100)|int }}%;
+                    background:{% if row.value|float >= 0 %}#3b82f6{% else %}#10b981{% endif %};">
+        </div>
+      </div>
     </div>
+    {% endfor %}
     {% else %}
     <div class="alert alert-info">ℹ️ Correlation matrix CSV not loaded.</div>
     {% endif %}
@@ -123,18 +115,27 @@
   <div class="card-title">🕒 Project Timeline</div>
   <div class="timeline">
     {% set events = [
-      ('Data Collection', 'Obtained raw PRSA air quality dataset for Aotizhongxin station.'),
-      ('EDA & Visualisation', 'Generated 61 charts — histograms, boxplots, heatmaps, pair plots.'),
-      ('Missing Value Analysis', 'Identified and documented missing values; generated report CSV.'),
-      ('Data Preprocessing', 'Applied median/mode fill, label encoding, one-hot, target & embedding.'),
-      ('Feature Engineering', 'Scaling with StandardScaler and MinMaxScaler; saved 5 dataset variants.'),
-      ('Model Training', '(Upcoming) Train Linear Regression, Random Forest, XGBoost.'),
-      ('Evaluation & Reporting', '(Upcoming) Cross-validation, metrics comparison, final report.'),
+      ('Data Collection',      'Obtained PRSA air quality dataset for Aotizhongxin station.',           True),
+      ('EDA & Visualisation',  'Generated 61 charts — histograms, boxplots, heatmaps, pair plots.',    True),
+      ('Missing Value Analysis','Identified and documented missing values; generated report CSV.',       True),
+      ('Data Preprocessing',   'Applied median/mode fill, 5 encoding methods and scaling.',            True),
+      ('Feature Engineering',  'Saved 6 cleaned dataset variants to /dataset folder.',                 True),
+      ('Model Training',       '(Upcoming) Train Linear Regression, Random Forest, XGBoost.',          False),
+      ('Evaluation & Reporting','(Upcoming) Cross-validation, metrics comparison, final report.',      False),
     ] %}
-    {% for title, desc in events %}
+    {% for title, desc, done in events %}
     <div class="timeline-item">
-      <div class="timeline-dot" style="{% if loop.index > 5 %}background:#94a3b8;box-shadow:0 0 0 2px #94a3b8;{% endif %}"></div>
-      <h4>{{ title }}</h4>
+      <div class="timeline-dot"
+           style="{% if not done %}background:#cbd5e1;box-shadow:0 0 0 2px #cbd5e1;{% endif %}">
+      </div>
+      <h4>
+        {{ title }}
+        {% if done %}
+        <span class="tag tag-green" style="font-size:.65rem;margin-left:6px;">✓ Done</span>
+        {% else %}
+        <span class="tag tag-gray" style="font-size:.65rem;margin-left:6px;">Pending</span>
+        {% endif %}
+      </h4>
       <p>{{ desc }}</p>
     </div>
     {% endfor %}
