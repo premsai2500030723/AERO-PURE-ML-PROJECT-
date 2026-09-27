@@ -1,3 +1,35 @@
+"""
+final_preprocess_air_quality.py
+================================
+Applies the **complete end-to-end preprocessing pipeline** to the raw
+Aotizhongxin air quality dataset and saves a single production-ready CSV.
+
+Pipeline Steps
+--------------
+1. Load raw dataset
+2. Remove duplicate rows
+3. Fill numeric NaN → column median
+4. Fill categorical NaN → column mode
+5. Strip & lowercase categorical strings
+6. Label encode categorical columns (wd, station)
+7. Standard scale all numeric columns (mean=0, std=1)
+8. Save final preprocessed CSV
+
+Output
+------
+dataset/final_preprocess_air_quality.csv
+
+Usage
+-----
+    python src/final_preprocess_air_quality.py
+
+Notes
+-----
+- The original raw CSV is never overwritten.
+- StandardScaler is fit on the full dataset here; in a production pipeline
+  it should be fit only on the training split to avoid data leakage.
+"""
+
 import pandas as pd
 import numpy as np
 
