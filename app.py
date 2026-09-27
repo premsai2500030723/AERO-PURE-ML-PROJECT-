@@ -359,10 +359,22 @@ def download_report(filename):
 # Entry point
 # ─────────────────────────────────────────────────────────────
 
+
+
+# -- Error handlers ------------------------------------------
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('base.html'), 404
+
+@app.errorhandler(500)
+def internal_error(e):
+    return render_template('base.html'), 500
+
 if __name__ == "__main__":
     print("=" * 55)
     print("  Air Quality ML Dashboard")
     print("  http://127.0.0.1:5000")
     print("=" * 55)
     app.run(debug=True, port=5000)
+
 
