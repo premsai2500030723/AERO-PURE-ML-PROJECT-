@@ -6,35 +6,84 @@
 
 <div class="page-header">
   <h1>📈 EDA Visualizations</h1>
-  <p>Charts generated from the Aotizhongxin air quality dataset. Click any chart to expand.</p>
+  <p>{{ images|length }} charts generated from the Aotizhongxin air quality dataset. Click any chart to expand.</p>
 </div>
 
-<!-- Filter tabs -->
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;">
+<!-- Category filter pills -->
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;align-items:center;">
+  <span style="font-size:.78rem;font-weight:600;color:#64748b;margin-right:4px;">Filter:</span>
   {% for cat in categories %}
+  {% set active = (cat == selected_cat) %}
   <a href="{{ url_for('visualization') }}?cat={{ cat }}"
-     class="btn {% if cat == selected_cat %}btn-primary{% else %}btn-outline{% endif %}"
-     style="font-size:.8rem;padding:7px 14px;">
+     style="display:inline-flex;align-items:center;gap:5px;
+            padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:600;
+            text-decoration:none;transition:all .18s;
+            {% if active %}
+              background:linear-gradient(135deg,#4f46e5,#06b6d4);color:#fff;
+              box-shadow:0 2px 10px rgba(79,70,229,.35);
+            {% else %}
+              background:#fff;color:#64748b;border:1px solid #e2e8f0;
+            {% endif %}">
+    {% if cat == 'All' %}🖼️
+    {% elif cat == 'Histogram' %}📊
+    {% elif cat == 'Boxplot' %}📦
+    {% elif cat == 'Outlier' %}🔴
+    {% elif cat == 'Heatmap' %}🌡️
+    {% elif cat == 'Scatter' %}🔵
+    {% elif cat == 'Count Plot' %}📋
+    {% elif cat == 'Pair Plot' %}🔗
+    {% else %}📌{% endif %}
     {{ cat }}
+    <span style="background:{% if active %}rgba(255,255,255,.25){% else %}#f1f5f9{% endif %};
+                 color:{% if active %}#fff{% else %}#64748b{% endif %};
+                 font-size:.65rem;padding:1px 6px;border-radius:10px;font-weight:700;">
+      {% if cat == selected_cat %}{{ images|length }}{% endif %}
+    </span>
   </a>
   {% endfor %}
 </div>
 
 {% if images %}
-<!-- Image grid -->
+
+<!-- Summary strip -->
+<div class="alert alert-info" style="margin-bottom:18px;">
+  📌 Showing <strong>{{ images|length }}</strong> charts in category
+  <strong>{{ selected_cat }}</strong>. Click any image to view full size.
+</div>
+
+<!-- Image grid with overlay -->
 <div class="img-grid">
   {% for img in images %}
   <div class="img-card">
-    <img src="{{ url_for('output_file', filename=img.filename) }}"
-         alt="{{ img.label }}"
-         loading="lazy" />
-    <div class="img-card-body">{{ img.label }}</div>
+    <div class="img-card-thumb">
+      <img src="{{ url_for('output_file', filename=img.filename) }}"
+           alt="{{ img.label }}" loading="lazy" />
+      <div class="img-card-overlay">
+        <span>🔍 {{ img.label }}</span>
+      </div>
+    </div>
+    <div class="img-card-body">
+      <span>{{ img.label }}</span>
+      <span style="font-size:.68rem;background:#f1f5f9;padding:2px 7px;
+                   border-radius:8px;color:#94a3b8;">PNG</span>
+    </div>
   </div>
   {% endfor %}
 </div>
+
 {% else %}
-<div class="alert alert-warning">
-  ⚠️ No charts found for this category. Run the EDA script to generate them.
+<div style="text-align:center;padding:60px 20px;">
+  <div style="font-size:3rem;margin-bottom:12px;">📭</div>
+  <h3 style="font-size:1rem;font-weight:700;margin-bottom:6px;">No Charts Found</h3>
+  <p style="color:#64748b;font-size:.85rem;">
+    No charts available for <strong>{{ selected_cat }}</strong>.
+    Run the EDA script to generate visualizations.
+  </p>
+  <div style="margin-top:16px;">
+    <code style="background:#f1f5f9;padding:6px 14px;border-radius:8px;font-size:.82rem;">
+      python src/EDA_Analysis_air_quality.py
+    </code>
+  </div>
 </div>
 {% endif %}
 
