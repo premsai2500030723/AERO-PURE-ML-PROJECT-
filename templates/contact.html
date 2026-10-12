@@ -1,113 +1,99 @@
 {% extends "base.html" %}
 {% block title %}Contact{% endblock %}
 {% block page_title %}Contact{% endblock %}
-
 {% block content %}
 
 <div class="page-header">
   <h1>✉️ Contact</h1>
-  <p>Get in touch about this ML project or ask any data analysis questions.</p>
+  <p>Get in touch about this project. Note: this form does not send emails — it is a UI prototype only.</p>
 </div>
 
-<div class="grid-2" style="margin-bottom:22px;">
+<div class="grid-2" style="margin-bottom:20px;">
 
-  <!-- Contact info card -->
+  <!-- Info -->
   <div class="card">
     <div class="card-title">📬 Project Contact</div>
-
-    {% set contacts = [
-      ('👤','Researcher',   'ML Project Team'),
-      ('🏫','Institution',  'Research Institution'),
-      ('📧','Email',        'project@example.com'),
-      ('💻','Repository',   'GitHub / Local Project'),
-      ('📍','Station',      'Aotizhongxin, Beijing, China'),
+    {% for icon, label, val in [
+      ('👤','Project','AERO-PURE Air Quality ML Dashboard'),
+      ('🎓','Type',   'BTech Machine Learning Project'),
+      ('🏭','Station','Aotizhongxin, Beijing, China'),
+      ('📅','Dataset','2013–2017, UCI ML Repository'),
+      ('🐍','Stack',  'Python · Flask · Scikit-learn · Pandas'),
     ] %}
-    {% for icon, label, val in contacts %}
-    <div class="contact-info-item">
-      <div class="contact-icon">{{ icon }}</div>
+    <div class="contact-row">
+      <div class="contact-ico">{{ icon }}</div>
       <div>
-        <div style="font-size:.72rem;color:#94a3b8;font-weight:600;margin-bottom:1px;">{{ label }}</div>
-        <div style="font-weight:700;font-size:.88rem;">{{ val }}</div>
+        <div style="font-size:.7rem;color:#94a3b8;font-weight:600;margin-bottom:1px;">{{ label }}</div>
+        <div style="font-weight:700;font-size:.84rem;">{{ val }}</div>
       </div>
     </div>
     {% endfor %}
 
     {% if sent %}
-    <div class="alert alert-success" style="margin-top:16px;">
-      ✅ Message sent successfully! We'll get back to you soon.
+    <div class="alert alert-success" style="margin-top:14px;">
+      ✅ Form submitted. (No email delivery — this is a UI prototype.)
     </div>
     {% endif %}
   </div>
 
-  <!-- Contact form -->
+  <!-- Form -->
   <div class="card">
     <div class="card-title">💬 Send a Message</div>
+    <div class="alert alert-info">
+      ℹ️ This form does not send emails. It demonstrates form UI only.
+    </div>
     <form method="POST" action="{{ url_for('contact') }}">
-
       <div class="form-group">
-        <label class="form-label" for="c_name">Your Name</label>
-        <input class="form-control" type="text" id="c_name" name="name"
-               placeholder="e.g. Jane Smith" required />
+        <label class="form-label" for="name">Name</label>
+        <input class="form-control" type="text" id="name" name="name" placeholder="Your name" required/>
       </div>
-
       <div class="form-group">
-        <label class="form-label" for="c_email">Email Address</label>
-        <input class="form-control" type="email" id="c_email" name="email"
-               placeholder="jane@example.com" required />
+        <label class="form-label" for="email">Email</label>
+        <input class="form-control" type="email" id="email" name="email" placeholder="you@example.com" required/>
       </div>
-
       <div class="form-group">
-        <label class="form-label" for="c_subject">Subject</label>
-        <select class="form-control" id="c_subject" name="subject">
-          <option value="general">General Inquiry</option>
-          <option value="dataset">Dataset Question</option>
-          <option value="model">Model / Prediction</option>
-          <option value="bug">Bug Report</option>
-          <option value="collaboration">Collaboration</option>
+        <label class="form-label" for="subject">Subject</label>
+        <select class="form-control" id="subject" name="subject">
+          <option>General Inquiry</option>
+          <option>Dataset Question</option>
+          <option>Model / Prediction</option>
+          <option>Bug Report</option>
+          <option>Collaboration</option>
         </select>
       </div>
-
       <div class="form-group">
-        <label class="form-label" for="c_message">Message</label>
-        <textarea class="form-control" id="c_message" name="message" rows="4"
-                  placeholder="Write your message…" required
-                  style="resize:vertical;"></textarea>
+        <label class="form-label" for="message">Message</label>
+        <textarea class="form-control" id="message" name="message" rows="4"
+                  placeholder="Your message…" required style="resize:vertical;"></textarea>
       </div>
-
-      <button type="submit" class="btn btn-primary" style="width:100%;">
-        ✉️ Send Message
-      </button>
+      <button type="submit" class="btn btn-primary" style="width:100%;">✉️ Submit</button>
     </form>
   </div>
 
 </div>
 
-<!-- FAQ accordion -->
+<!-- FAQ -->
 <div class="card">
   <div class="card-title">❓ Frequently Asked Questions</div>
   {% set faqs = [
+    ('What is PM2.5?',
+     'PM2.5 is particulate matter with diameter ≤ 2.5 µm. It penetrates deep into lungs and is the primary air quality health indicator in this dataset.'),
     ('Where does the dataset come from?',
-     'The dataset is from the Beijing Multi-Site Air Quality Dataset available on the UCI Machine Learning Repository. It covers Aotizhongxin station with hourly measurements from March 2013 to February 2017.'),
-    ('What does PM2.5 mean?',
-     'PM2.5 refers to particulate matter with diameter ≤ 2.5 micrometres. It is a critical air quality indicator due to its health impact on the respiratory and cardiovascular systems.'),
-    ('Can I use this code for my own project?',
-     'Yes. The project is intended for educational and research purposes. You are free to adapt the preprocessing scripts and modelling code with attribution.'),
-    ('How do I run the EDA script?',
-     'Open a terminal in the project root and run: python src/EDA_Analysis_air_quality.py — Charts will be saved to the output/ folder automatically.'),
-    ('Why are model metrics showing placeholder values?',
-     'Model training is a planned next step. The metrics shown are indicative prototypes. Run the training pipeline when the model scripts are added to the src/ folder.'),
+     'The Beijing Multi-Site Air Quality Dataset from the UCI ML Repository. It covers the Aotizhongxin station with hourly measurements from March 2013 to February 2017.'),
+    ('How accurate is the prediction model?',
+     'The trained Random Forest Regressor achieved R²=0.92 and MAE=14.28 µg/m³ on the held-out 20% test set. This is a reasonable estimate but not a certified measurement.'),
+    ('How do I run the project?',
+     'Install dependencies with pip install -r requirements.txt, run python train_model.py once to train the model, then python app.py to start the web server.'),
+    ('Why is AQI shown alongside PM2.5?',
+     'AQI is derived from PM2.5 concentration using US EPA breakpoints. The model predicts PM2.5 directly; AQI is a secondary display for interpretability.'),
   ] %}
-  {% for i, (q, a) in enumerate(faqs) %}
+  {% for q, a in faqs %}
   <details style="border-bottom:1px solid #f1f5f9;{% if loop.last %}border-bottom:none;{% endif %}">
-    <summary style="padding:14px 4px;font-weight:700;font-size:.88rem;cursor:pointer;
-                    list-style:none;display:flex;justify-content:space-between;align-items:center;
-                    color:#1e293b;transition:color .15s;"
-             onmouseover="this.style.color='#4f46e5'"
-             onmouseout="this.style.color='#1e293b'">
-      {{ q }}
-      <span style="color:#94a3b8;font-size:.8rem;flex-shrink:0;margin-left:10px;">▾</span>
+    <summary style="padding:13px 4px;font-weight:700;font-size:.86rem;cursor:pointer;list-style:none;
+                    display:flex;justify-content:space-between;align-items:center;">
+      {{ q }} <span style="color:#94a3b8;font-size:.78rem;">▾</span>
     </summary>
-    <p style="font-size:.83rem;color:#64748b;padding:0 4px 14px;line-height:1.75;">{{ a }}</p>
+    <p style="font-size:.82rem;color:#64748b;padding:0 4px 13px;line-height:1.7;">{{ a }}</p>
   </details>
   {% endfor %}
 </div>

@@ -1,121 +1,84 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block page_title %}Home{% endblock %}
-
 {% block content %}
 
-<!-- ── Hero Banner ─────────────────────────────────── -->
-<div class="hero-banner">
+<!-- Hero -->
+<div class="hero">
   <div style="position:relative;z-index:1;">
-    <div class="hero-eyebrow">
-      🔬 Research Project &nbsp;·&nbsp; Beijing 2013–2017
-    </div>
-    <h1 class="hero-title">
-      Air Quality Analysis<br/>
-      &amp; Machine Learning
-    </h1>
+    <div class="hero-eyebrow">🔬 BTech ML Project · Beijing 2013–2017</div>
+    <h1 class="hero-title">Air Quality Analysis<br>&amp; PM2.5 Prediction</h1>
     <p class="hero-desc">
-      Comprehensive EDA, preprocessing and predictive modelling on the
-      Aotizhongxin monitoring station dataset — covering PM2.5, PM10,
-      SO₂, NO₂, CO and O₃ across four years of hourly readings.
+      End-to-end machine learning pipeline on the Aotizhongxin station dataset —
+      exploratory analysis, preprocessing, regression, classification and clustering.
     </p>
-    <div style="display:flex;gap:12px;flex-wrap:wrap;">
-      <a href="{{ url_for('dashboard') }}" class="btn btn-lg"
-         style="background:#fff;color:#4f46e5;box-shadow:0 4px 16px rgba(255,255,255,.2);">
-        📊 View Dashboard
-      </a>
-      <a href="{{ url_for('dataset') }}" class="btn btn-lg"
-         style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;">
-        🗂️ Explore Dataset
-      </a>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-accent btn-lg">📊 Dashboard</a>
+      <a href="{{ url_for('visualization') }}" class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.3);">📈 Visualizations</a>
+      <a href="{{ url_for('prediction') }}" class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.3);">🔮 Predict PM2.5</a>
     </div>
-  </div>
-
-  <!-- floating pill badges -->
-  <div style="position:absolute;top:20px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:1;">
-    {% for label,color in [('PM2.5','rgba(239,68,68,.85)'),('NO₂','rgba(245,158,11,.85)'),('O₃','rgba(16,185,129,.85)')] %}
-    <span style="background:{{ color }};color:#fff;font-size:.68rem;font-weight:700;
-                 padding:4px 12px;border-radius:20px;letter-spacing:.04em;
-                 box-shadow:0 2px 8px rgba(0,0,0,.25);backdrop-filter:blur(4px);">
-      {{ label }}
-    </span>
-    {% endfor %}
   </div>
 </div>
 
-<!-- ── Animated KPI row ─────────────────────────────── -->
+<!-- KPI row (real values from dataset) -->
 <div class="stats-grid">
   {% set kpis = [
-    ('🗂️','blue',  '420 K+',  'Total Records',     'PRSA dataset'),
-    ('📋','green', '18',       'Features / Columns','Raw dataset'),
-    ('📈','amber', '61',       'Generated Charts',  'EDA output'),
-    ('⚙️','purple','5',        'Encoding Methods',  'Preprocessing'),
-    ('🌡️','red',   '4 yrs',   'Data Span',         '2013 – 2017'),
-    ('🔬','cyan',  '1',        'Station Monitored', 'Aotizhongxin'),
+    ('blue',  '🗂️', stats.get('total_rows','—'),    'Total Records',      'Raw dataset rows'),
+    ('green', '📋', stats.get('total_cols','—'),    'Columns',            'Features + target'),
+    ('amber', '⚠️', stats.get('missing','—'),       'Missing Values',     stats.get('missing_pct','')~'% of cells'),
+    ('purple','📈', stats.get('charts','—'),         'EDA Charts',         'Generated PNGs'),
+    ('cyan',  '🗄️', stats.get('datasets','—'),      'Cleaned Datasets',   'Encoding variants'),
+    ('red',   '📅', stats.get('year_start','2013')~'–'~stats.get('year_end','2017'), 'Data Span', 'Hourly readings'),
   ] %}
-  {% for icon, color, val, label, sub in kpis %}
-  <div class="stat-card {{ color }}">
+  {% for color, icon, val, label, sub in kpis %}
+  <div class="stat-card">
     <div class="stat-icon {{ color }}">{{ icon }}</div>
     <div>
       <div class="stat-value">{{ val }}</div>
       <div class="stat-label">{{ label }}</div>
-      <div style="font-size:.68rem;color:#94a3b8;margin-top:1px;">{{ sub }}</div>
+      <div style="font-size:.66rem;color:#94a3b8;margin-top:1px;">{{ sub }}</div>
     </div>
   </div>
   {% endfor %}
 </div>
 
-<!-- ── Feature Cards ────────────────────────────────── -->
-<div style="margin-bottom:10px;">
-  <h2 style="font-size:1rem;font-weight:700;margin-bottom:16px;color:#1e293b;">
-    🚀 Explore the Project
-  </h2>
-</div>
-
-<div class="grid-3" style="margin-bottom:28px;">
-  {% set features = [
-    (url_for('dataset'),       '🗂️','Dataset Viewer',
-     'Browse raw and cleaned datasets with interactive table, search and column statistics.','blue'),
+<!-- Feature cards -->
+<h2 style="font-size:.95rem;font-weight:700;margin-bottom:14px;">🚀 Project Modules</h2>
+<div class="grid-3" style="margin-bottom:24px;">
+  {% set modules = [
+    (url_for('dataset'),       '🗂️','Dataset Explorer',
+     'Browse all 6 dataset variants with live search, column stats and pagination.','blue'),
     (url_for('visualization'), '📈','EDA Visualizations',
-     'Histograms, boxplots, correlation heatmaps, pair plots and outlier detection charts.','purple'),
-    (url_for('preprocessing'), '⚙️','Preprocessing',
-     'Missing-value treatment, label, one-hot, ordinal, target and embedding encodings.','amber'),
+     '58 charts — histograms, boxplots, correlation heatmaps, scatter plots, pair plots.','cyan'),
+    (url_for('preprocessing'), '⚙️','Preprocessing Pipeline',
+     'Missing-value handling, 5 encoding methods, 3 scaling strategies.','amber'),
     (url_for('models'),        '🤖','ML Models',
-     'Linear Regression, Random Forest, XGBoost — performance comparison and metrics.','green'),
-    (url_for('prediction'),    '🔮','Prediction Tool',
-     'Enter pollutant values and instantly receive an AQI category prediction.','red'),
-    (url_for('reports'),       '📄','Reports',
-     'Downloadable CSV reports — missing values, correlation matrix, statistical summary.','cyan'),
+     'Linear, Ridge, Lasso, ElasticNet, Decision Tree, Random Forest — real R² scores.','purple'),
+    (url_for('prediction'),    '🔮','PM2.5 Predictor',
+     'Trained Random Forest model (R²=0.92). Enter sensor values, get AQI category.','green'),
+    (url_for('reports'),       '📄','Reports &amp; Downloads',
+     'Missing-value report, correlation matrix, statistical summary — download CSV.','red'),
   ] %}
-  {% for href, icon, title, desc, color in features %}
+  {% for href, icon, title, desc, color in modules %}
   <a href="{{ href }}" style="text-decoration:none;">
-    <div class="card" style="height:100%;cursor:pointer;
-         border-top:3px solid {% if color=='blue' %}#3b82f6{% elif color=='purple' %}#8b5cf6
-         {% elif color=='amber' %}#f59e0b{% elif color=='green' %}#10b981
-         {% elif color=='red' %}#ef4444{% else %}#06b6d4{% endif %};">
-      <div style="font-size:2rem;margin-bottom:12px;">{{ icon }}</div>
-      <h3 style="font-size:.93rem;font-weight:700;margin-bottom:8px;color:#1e293b;">{{ title }}</h3>
-      <p style="font-size:.8rem;color:#64748b;line-height:1.65;">{{ desc }}</p>
-      <div style="margin-top:14px;display:flex;align-items:center;gap:4px;
-                  font-size:.75rem;font-weight:600;
-                  color:{% if color=='blue' %}#2563eb{% elif color=='purple' %}#7c3aed
-                  {% elif color=='amber' %}#d97706{% elif color=='green' %}#059669
-                  {% elif color=='red' %}#dc2626{% else %}#0891b2{% endif %};">
-        Open &rarr;
-      </div>
+    <div class="card" style="height:100%;border-top:3px solid {% if color=='blue' %}#3b82f6{% elif color=='cyan' %}#06b6d4{% elif color=='amber' %}#f59e0b{% elif color=='purple' %}#8b5cf6{% elif color=='green' %}#10b981{% else %}#ef4444{% endif %};">
+      <div style="font-size:1.8rem;margin-bottom:10px;">{{ icon }}</div>
+      <h3 style="font-size:.9rem;font-weight:700;margin-bottom:6px;">{{ title }}</h3>
+      <p style="font-size:.78rem;color:#64748b;line-height:1.6;">{{ desc }}</p>
+      <div style="margin-top:12px;font-size:.74rem;font-weight:700;color:#94a3b8;">Open →</div>
     </div>
   </a>
   {% endfor %}
 </div>
 
-<!-- ── Column Tags ───────────────────────────────────── -->
+<!-- Dataset columns -->
 <div class="card">
-  <div class="card-title">📋 Dataset Columns at a Glance</div>
-  <div style="display:flex;flex-wrap:wrap;gap:8px;">
-    {% set cols = ['year','month','day','hour','PM2.5','PM10','SO2','NO2','CO','O3','TEMP','PRES','DEWP','RAIN','wd','WSPM','station'] %}
-    {% set colors = ['blue','green','amber','purple','red','cyan','blue','green','amber','purple','red','cyan','blue','green','amber','purple','red'] %}
-    {% for col, c in zip(cols, colors) %}
-    <span class="tag tag-{{ c }}" style="font-size:.76rem;">{{ col }}</span>
+  <div class="card-title">📋 Dataset Columns</div>
+  <div style="display:flex;flex-wrap:wrap;gap:7px;">
+    {% for col, color in [('No','gray'),('year','gray'),('month','blue'),('day','blue'),('hour','blue'),
+      ('PM2.5','red'),('PM10','amber'),('SO2','amber'),('NO2','amber'),('CO','amber'),('O3','amber'),
+      ('TEMP','cyan'),('PRES','cyan'),('DEWP','cyan'),('RAIN','cyan'),('wd','purple'),('WSPM','cyan'),('station','gray')] %}
+    <span class="tag tag-{{ color }}">{{ col }}{% if col=='PM2.5' %} ← target{% endif %}</span>
     {% endfor %}
   </div>
 </div>

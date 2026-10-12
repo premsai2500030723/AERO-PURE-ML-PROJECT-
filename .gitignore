@@ -3,7 +3,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
 *.egg-info/
 dist/
 build/
@@ -13,6 +12,7 @@ build/
 .venv/
 venv/
 env/
+ENV/
 
 # IDEs
 .idea/
@@ -22,13 +22,23 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Flask
 instance/
 *.sqlite
+*.db
 
-# Data (large raw files)
-*.csv.bak
+# Trained model artifacts (large — regenerate with train_model.py)
+models/*.pkl
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
 
 # Logs
 *.log
+
+# Temp
+*.tmp
+*.bak

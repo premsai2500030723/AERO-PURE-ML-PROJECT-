@@ -1,119 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Air Quality ML{% endblock %} — AQ Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>{% block title %}AERO-PURE{% endblock %} — Air Quality ML</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
 </head>
 <body>
 
-  <!-- ══ Sidebar ══════════════════════════════════ -->
-  <aside class="sidebar" id="sidebar">
-
-    <div class="sidebar-brand">
-      <div class="brand-logo">
-        <div class="brand-icon">🌫️</div>
-        <div class="brand-text">
-          <h2>AQ ML Dashboard</h2>
-          <p>Beijing Air Quality</p>
-        </div>
-      </div>
-      <span class="brand-badge">● LIVE</span>
-    </div>
-
-    <nav class="sidebar-nav">
-
-      <span class="nav-section-title">Main</span>
-
-      <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}"
-         href="{{ url_for('home') }}">
-        <span class="nav-icon">🏠</span> Home
-      </a>
-      <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}"
-         href="{{ url_for('dashboard') }}">
-        <span class="nav-icon">📊</span> Dashboard
-      </a>
-
-      <span class="nav-section-title">Data</span>
-
-      <a class="nav-link {% if request.endpoint == 'dataset' %}active{% endif %}"
-         href="{{ url_for('dataset') }}">
-        <span class="nav-icon">🗂️</span> Dataset
-      </a>
-      <a class="nav-link {% if request.endpoint == 'visualization' %}active{% endif %}"
-         href="{{ url_for('visualization') }}">
-        <span class="nav-icon">📈</span> Visualization
-      </a>
-      <a class="nav-link {% if request.endpoint == 'preprocessing' %}active{% endif %}"
-         href="{{ url_for('preprocessing') }}">
-        <span class="nav-icon">⚙️</span> Preprocessing
-      </a>
-
-      <span class="nav-section-title">Models</span>
-
-      <a class="nav-link {% if request.endpoint == 'models' %}active{% endif %}"
-         href="{{ url_for('models') }}">
-        <span class="nav-icon">🤖</span> Models
-      </a>
-      <a class="nav-link {% if request.endpoint == 'prediction' %}active{% endif %}"
-         href="{{ url_for('prediction') }}">
-        <span class="nav-icon">🔮</span> Prediction
-      </a>
-      <a class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}"
-         href="{{ url_for('reports') }}">
-        <span class="nav-icon">📄</span> Reports
-      </a>
-
-      <span class="nav-section-title">Info</span>
-
-      <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}"
-         href="{{ url_for('about') }}">
-        <span class="nav-icon">ℹ️</span> About
-      </a>
-      <a class="nav-link {% if request.endpoint == 'contact' %}active{% endif %}"
-         href="{{ url_for('contact') }}">
-        <span class="nav-icon">✉️</span> Contact
-      </a>
-
-    </nav>
-
-    <div class="sidebar-footer">
-      <div class="footer-avatar">AQ</div>
-      <div class="footer-info">
-        <p>AQ ML Project</p>
-        <span>&copy; 2026 · Aotizhongxin</span>
+<!-- ── Sidebar ─────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-row">
+      <div class="brand-icon">🌫️</div>
+      <div>
+        <div class="brand-name">AERO-PURE</div>
+        <div class="brand-sub">Air Quality ML Dashboard</div>
       </div>
     </div>
-
-  </aside>
-
-  <!-- ══ Main Wrapper ══════════════════════════════ -->
-  <div class="main-wrapper">
-
-    <header class="topbar">
-      <div class="topbar-left">
-        <button class="topbar-menu-btn" id="sidebar-toggle">☰</button>
-        <span class="topbar-title">{% block page_title %}{% endblock %}</span>
-      </div>
-      <div class="topbar-right">
-        <div class="topbar-pill">
-          <span class="dot"></span> Live
-        </div>
-        <span class="topbar-location">📍 Aotizhongxin, Beijing</span>
-        <span class="topbar-time" id="clock">--:--</span>
-      </div>
-    </header>
-
-    <main class="page-content">
-      {% block content %}{% endblock %}
-    </main>
-
   </div>
 
-  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <nav class="sidebar-nav">
+    <span class="nav-group-label">Main</span>
+    <a class="nav-link {% if request.endpoint=='home' %}active{% endif %}" href="{{ url_for('home') }}">
+      <span class="nav-icon">🏠</span> Home
+    </a>
+    <a class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+      <span class="nav-icon">📊</span> Dashboard
+    </a>
+
+    <span class="nav-group-label">Data</span>
+    <a class="nav-link {% if request.endpoint=='dataset' %}active{% endif %}" href="{{ url_for('dataset') }}">
+      <span class="nav-icon">🗂️</span> Dataset
+    </a>
+    <a class="nav-link {% if request.endpoint=='visualization' %}active{% endif %}" href="{{ url_for('visualization') }}">
+      <span class="nav-icon">📈</span> Visualization
+    </a>
+    <a class="nav-link {% if request.endpoint=='preprocessing' %}active{% endif %}" href="{{ url_for('preprocessing') }}">
+      <span class="nav-icon">⚙️</span> Preprocessing
+    </a>
+
+    <span class="nav-group-label">Models</span>
+    <a class="nav-link {% if request.endpoint=='models' %}active{% endif %}" href="{{ url_for('models') }}">
+      <span class="nav-icon">🤖</span> Models
+    </a>
+    <a class="nav-link {% if request.endpoint=='prediction' %}active{% endif %}" href="{{ url_for('prediction') }}">
+      <span class="nav-icon">🔮</span> Prediction
+    </a>
+    <a class="nav-link {% if request.endpoint=='reports' %}active{% endif %}" href="{{ url_for('reports') }}">
+      <span class="nav-icon">📄</span> Reports
+    </a>
+
+    <span class="nav-group-label">Info</span>
+    <a class="nav-link {% if request.endpoint=='about' %}active{% endif %}" href="{{ url_for('about') }}">
+      <span class="nav-icon">ℹ️</span> About
+    </a>
+    <a class="nav-link {% if request.endpoint=='contact' %}active{% endif %}" href="{{ url_for('contact') }}">
+      <span class="nav-icon">✉️</span> Contact
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">AERO-PURE v2.0 &copy; 2026 · Aotizhongxin, Beijing</div>
+</aside>
+
+<!-- ── Main wrapper ────────────────────────────────────── -->
+<div class="main-wrapper">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="topbar-menu" id="sidebar-toggle" aria-label="Toggle navigation">☰</button>
+      <span class="topbar-title">{% block page_title %}{% endblock %}</span>
+    </div>
+    <div class="topbar-right">
+      <div class="status-pill"><span class="status-dot"></span>Live</div>
+      <span class="topbar-badge">📍 Aotizhongxin, Beijing</span>
+      <span class="topbar-badge" id="live-clock" aria-live="polite">--:--</span>
+    </div>
+  </header>
+
+  <main class="page-content" role="main">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<!-- ── Image modal ─────────────────────────────────────── -->
+<div class="modal-backdrop" id="img-modal" role="dialog" aria-modal="true" aria-label="Chart viewer">
+  <button class="modal-close" id="modal-close" aria-label="Close">✕ Close</button>
+  <button class="modal-nav modal-prev" id="modal-prev" aria-label="Previous">‹</button>
+  <img class="modal-img" id="modal-img" src="" alt=""/>
+  <p  class="modal-caption" id="modal-caption"></p>
+  <button class="modal-nav modal-next" id="modal-next" aria-label="Next">›</button>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

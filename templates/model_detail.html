@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block title %}{{ m.label }}{% endblock %}
+{% block page_title %}{{ m.label }}{% endblock %}
+{% block content %}
+
+<div style="margin-bottom:18px;">
+  <a href="{{ url_for('models') }}" class="btn btn-outline btn-sm">← Back to Models</a>
+</div>
+
+<div class="page-header">
+  <h1>{% if m.type=='regression' %}📉{% else %}🏷️{% endif %} {{ m.label }}</h1>
+  <p>{% if m.type=='regression' %}Regression — predicts exact PM2.5 concentration (µg/m³).{% else %}Classification — predicts AQI category from pollutant and weather inputs.{% endif %}</p>
+</div>
+
+<!-- Metrics -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-title">📈 Performance Metrics</div>
+  {% if m.type == 'regression' %}
+  <div class="stats-grid">
+    {% for lbl, val, color in [('R² Score',m.r2,'blue'),('MAE',m.mae,'green'),('MSE',m.mse,'amber'),('RMSE',m.rmse,'red')] %}
+    <div class="stat-card"><div class="stat-icon {{ color }}">{% if color=='blue' %}📊{% elif color=='green' %}📉{% elif color=='amber' %}⚠️{% else %}📐{% endif %}</div>
+    <div><div class="stat-value">{{ val }}</div><div class="stat-label">{{ lbl }}</div></div></div>
+    {% endfor %}
+  </div>
+  <div style="margin-top:12px;padding:13px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;font-size:.82rem;color:#1e40af;line-height:1.6;">
+    📌 R²&nbsp;=&nbsp;{{ m.r2 }} means the model explains <strong>{{ (m.r2*100)|round(1) }}%</strong> of PM2.5 variation.
+    MAE&nbsp;=&nbsp;{{ m.mae }}&nbsp;µg/m³ is the average prediction error.
+  </div>
+  {% else %}
+  <div class="stats-grid">
+    {% for lbl, val, color in [('Accuracy',m.accuracy,'blue'),('Precision',m.precision,'green'),('Recall',m.recall,'amber'),('F1 Score',m.f1,'purple')] %}
+    <div class="stat-card"><div class="stat-icon {{ color }}">{% if color=='blue' %}🎯{% elif color=='green' %}✅{% elif color=='amber' %}🔄{% else %}⚖️{% endif %}</div>
+    <div><div class="stat-value">{{ (val*100)|round(2) }}%</div><div class="stat-label">{{ lbl }}</div></div></div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<div class="grid-2" style="margin-bottom:20px;">
+
+  <!-- Confusion matrix or regression behaviour -->
+  {% if m.type == 'classification' and m.confusion_matrix %}
+  <div class="card">
+    <div class="card-title">🔲 Confusion Matrix</div>
+    {% set cm = m.confusion_matrix %}
+    {% set classes = m.classes %}
+    <div style="overflow-x:auto;margin-bottom:14px;">
+      <table style="border-collapse:collapse;width:100%;font-size:.78rem;">
+        <thead>
+          <tr>
+            <th style="padding:7px 9px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:.68rem;">Actual↓ / Pred→</th>
+            {% for cls in classes %}<th style="padding:7px 9px;background:#f8fafc;border:1px solid #e2e8f0;color:#0f4c81;font-weight:700;font-size:.68rem;text-align:center;">{{ cls }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in range(cm|length) %}
+          {% set row = cm[i] %}
+          {% set rt = row|sum %}
+          <tr>
+            <td style="padding:7px 9px;background:#f8fafc;border:1px solid #e2e8f0;font-weight:700;color:#0f4c81;font-size:.74rem;">{{ classes[i] if i < classes|length else 'C'+i|string }}</td>
+            {% for j in range(row|length) %}
+            {% set v = row[j] %}
+            {% set pct = ((v/rt*100)|round(0)|int) if rt > 0 else 0 %}
+            <td style="padding:9px;border:1px solid #e2e8f0;text-align:center;font-weight:{% if i==j %}800{% else %}500{% endif %};
+                background:{% if i==j %}#dbeafe{% elif v > 0 %}#fef9c3{% else %}#fafafa{% endif %};
+                color:{% if i==j %}#1d4ed8{% elif v > 0 %}#92400e{% else %}#94a3b8{% endif %};">
+              <div style="font-size:.88rem;">{{ v }}</div>
+              <div style="font-size:.62rem;opacity:.7;">{{ pct }}%</div>
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:12px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:5px;font-size:.72rem;color:#64748b;"><span style="width:12px;height:12px;background:#dbeafe;border:1px solid #bfdbfe;border-radius:2px;display:inline-block;"></span>Correct (diagonal)</div>
+      <div style="display:flex;align-items:center;gap:5px;font-size:.72rem;color:#64748b;"><span style="width:12px;height:12px;background:#fef9c3;border-radius:2px;display:inline-block;"></span>Incorrect</div>
+    </div>
+    <div style="font-size:.78rem;font-weight:700;color:#64748b;margin-bottom:8px;">Per-Class Accuracy</div>
+    {% for i in range(cm|length) %}
+    {% set row = cm[i] %}{% set rt = row|sum %}{% set correct = row[i] %}
+    {% set pct = ((correct/rt*100)|round(1)) if rt > 0 else 0 %}
+    <div style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:2px;">
+        <span style="font-weight:700;">{{ classes[i] if i < classes|length else 'Class '+i|string }}</span>
+        <span style="color:#64748b;">{{ correct }}/{{ rt }} = <strong>{{ pct }}%</strong></span>
+      </div>
+      <div class="progress" style="height:5px;">
+        <div class="progress-bar" style="width:{{ pct }}%;background:{% if pct >= 80 %}#10b981{% elif pct >= 60 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="card-title">📊 Error Analysis</div>
+    {% for lbl, val, max_v, color in [('MAE',m.mae,60,'#10b981'),('RMSE',m.rmse,80,'#ef4444')] %}
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px;">
+        <span style="font-weight:700;">{{ lbl }}</span><span style="color:#64748b;">{{ val }} µg/m³</span>
+      </div>
+      <div class="progress"><div class="progress-bar" style="width:{{ [(val|float/max_v*100)|int,100]|min }}%;background:{{ color }};"></div></div>
+    </div>
+    {% endfor %}
+    <div style="margin-top:14px;padding:13px;background:#f8fafc;border-radius:9px;border:1px solid #e2e8f0;">
+      <div style="font-size:.76rem;font-weight:700;color:#64748b;margin-bottom:8px;">AQI REFERENCE</div>
+      {% for lbl, rng, c in [('Good','0–35 µg/m³','#22c55e'),('Moderate','35–75','#eab308'),('Unhealthy','75–150','#ef4444'),('Hazardous','150+','#7f1d1d')] %}
+      <div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:.78rem;">
+        <span style="width:10px;height:10px;border-radius:50%;background:{{ c }};flex-shrink:0;"></span>
+        <span style="font-weight:600;">{{ lbl }}</span>
+        <span style="color:#94a3b8;margin-left:auto;">{{ rng }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Feature importance -->
+  {% if m.feature_importance %}
+  <div class="card">
+    <div class="card-title">🏆 Feature Importance</div>
+    {% set fi_items = m.feature_importance.items()|list|sort(attribute=1,reverse=True) %}
+    {% for feat, imp in fi_items %}
+    <div style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:3px;">
+        <span style="font-weight:700;">{{ feat }}</span>
+        <span style="color:#64748b;font-weight:600;">{{ (imp*100)|round(1) }}%</span>
+      </div>
+      <div class="progress" style="height:5px;">
+        <div class="progress-bar" style="width:{{ (imp*100)|round(1) }}%;background:{% if imp > 0.5 %}#0f4c81{% elif imp > 0.1 %}#0ea5e9{% else %}#94a3b8{% endif %};"></div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+
+<!-- Flowchart -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-title">🔄 Pipeline Flowchart — Step by step</div>
+  <div style="overflow-x:auto;">
+    <div style="display:flex;align-items:flex-start;gap:0;min-width:680px;padding:8px 0;">
+      {% set steps = [
+        ('📂','RAW DATA','35,064 rows × 18 cols','Input'),
+        ('🧹','CLEAN','Drop NaN target, fill features w/ median','Preprocessing'),
+        ('🏷️','FEATURES','PM10,SO2,NO2,CO,O3,TEMP,PRES,DEWP,RAIN,WSPM','10 Features'),
+        ('📐','SCALE','StandardScaler mean=0 std=1','Normalization'),
+        ('✂️','SPLIT','80% Train · 20% Test','34,139 rows'),
+        ('🤖',m.label|upper,'{% if m.type==\"regression\" %}Predict PM2.5 value{% else %}Predict AQI class{% endif %}','← This Model'),
+        ('🎯','OUTPUT','{% if m.type==\"regression\" %}PM2.5 µg/m³ number{% else %}AQI Category{% endif %}','Prediction'),
+      ] %}
+      {% for icon, title, sub, label in steps %}
+      <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+        <div style="background:{% if loop.index == 6 %}linear-gradient(135deg,#0f4c81,#0ea5e9);border:2px solid #38bdf8;{% else %}linear-gradient(135deg,#1e3a5f,#0f2d5e);{% endif %}
+                    color:#fff;border-radius:10px;padding:12px 8px;text-align:center;width:100%;
+                    box-shadow:0 2px 8px rgba(15,76,129,.25);">
+          <div style="font-size:1.2rem;margin-bottom:4px;">{{ icon }}</div>
+          <div style="font-size:.68rem;font-weight:700;margin-bottom:2px;">{{ title }}</div>
+          <div style="font-size:.6rem;opacity:.7;line-height:1.3;">{{ sub }}</div>
+        </div>
+        <div style="font-size:.62rem;color:{% if loop.index==6 %}#0ea5e9;font-weight:700;{% else %}#94a3b8;{% endif %}margin-top:5px;text-align:center;">{{ label }}</div>
+      </div>
+      {% if not loop.last %}
+      <div style="display:flex;align-items:center;padding:0 3px;margin-top:18px;color:#94a3b8;font-size:1.1rem;">→</div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- About this model -->
+<div class="card">
+  <div class="card-title">📌 About This Model</div>
+  <div class="grid-3">
+    {% if key == 'linear_regression' %}{% set about = [('🎯','Task','Regression — predict PM2.5 number'),('⚡','Algorithm','Ordinary Least Squares (OLS)'),('📐','Formula','y = w₁x₁+…+b'),('✅','Strength','Fast, interpretable'),('⚠️','Weakness','Assumes linearity'),('📊','Best For','Baseline comparison')] %}
+    {% elif key == 'ridge' %}{% set about = [('🎯','Task','Regression + L2 penalty'),('⚡','Algorithm','Ridge Regression'),('📐','Alpha','1.0'),('✅','Strength','Handles multicollinearity'),('⚠️','Weakness','No feature elimination'),('📊','Best For','Correlated features')] %}
+    {% elif key == 'lasso' %}{% set about = [('🎯','Task','Regression + L1 penalty'),('⚡','Algorithm','Lasso Regression'),('📐','Alpha','0.1'),('✅','Strength','Auto feature selection'),('⚠️','Weakness','Unstable with correlated features'),('📊','Best For','Sparse feature sets')] %}
+    {% elif key == 'elasticnet' %}{% set about = [('🎯','Task','Regression + L1+L2'),('⚡','Algorithm','ElasticNet'),('📐','l1_ratio','0.5'),('✅','Strength','Best of Ridge+Lasso'),('⚠️','Weakness','Two hyperparams'),('📊','Best For','Mixed feature types')] %}
+    {% elif key == 'decision_tree_regressor' %}{% set about = [('🎯','Task','Non-linear regression'),('⚡','Algorithm','CART tree'),('📐','Max Depth','5'),('✅','Strength','Non-linear, no scaling needed'),('⚠️','Weakness','Can overfit'),('📊','Best For','Non-linear patterns')] %}
+    {% elif key == 'random_forest' %}{% set about = [('🎯','Task','Ensemble regression'),('⚡','Algorithm','100 Random Trees'),('📐','Max Depth','10'),('✅','Strength','Best R²=0.92, robust'),('⚠️','Weakness','Less interpretable'),('📊','Best For','Production predictions')] %}
+    {% elif key == 'logistic_binary' %}{% set about = [('🎯','Task','Binary classification'),('⚡','Algorithm','Logistic Regression'),('📐','Threshold','PM2.5 ≥ 75'),('✅','Strength','Fast, probabilistic'),('⚠️','Weakness','Linear boundary'),('📊','Best For','Health risk alerts')] %}
+    {% elif key == 'logistic_multiclass' %}{% set about = [('🎯','Task','4-class AQI classification'),('⚡','Algorithm','Multinomial LR'),('📐','Solver','lbfgs'),('✅','Strength','Multi-class probabilistic'),('⚠️','Weakness','Linear boundaries'),('📊','Best For','AQI reporting')] %}
+    {% elif key == 'decision_tree_classifier' %}{% set about = [('🎯','Task','4-class AQI classification'),('⚡','Algorithm','Decision Tree (Gini)'),('📐','Max Depth','5'),('✅','Strength','Interpretable rules'),('⚠️','Weakness','Sensitive to data changes'),('📊','Best For','Explainable AI')] %}
+    {% else %}{% set about = [('🎯','Task',m.label),('📊','Type',m.type)] %}
+    {% endif %}
+    {% for icon, lbl, val in about %}
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:13px;">
+      <div style="font-size:1.2rem;margin-bottom:5px;">{{ icon }}</div>
+      <div style="font-size:.68rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">{{ lbl }}</div>
+      <div style="font-size:.82rem;font-weight:600;">{{ val }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

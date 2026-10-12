@@ -1,102 +1,96 @@
 {% extends "base.html" %}
 {% block title %}Preprocessing{% endblock %}
 {% block page_title %}Preprocessing{% endblock %}
-
 {% block content %}
 
 <div class="page-header">
   <h1>⚙️ Data Preprocessing</h1>
-  <p>Step-by-step pipeline applied to clean and prepare the dataset for machine learning.</p>
+  <p>14-step pipeline — cleaning, encoding and scaling applied to the raw dataset.</p>
 </div>
 
-<!-- Summary stat cards -->
-<div class="stats-grid" style="margin-bottom:22px;">
-  {% set kpis = [
-    ('blue',  '🔢','0',    'Duplicates After Clean'),
-    ('green', '✅','0',    'Missing Values After Fill'),
-    ('amber', '🏷️','5',   'Encoding Methods'),
-    ('purple','📐','3',    'Scaling Strategies'),
-    ('red',   '📁','6',   'Output Dataset Files'),
-    ('cyan',  '⚡','14',  'Pipeline Steps'),
-  ] %}
-  {% for color, icon, val, label in kpis %}
-  <div class="stat-card {{ color }}">
-    <div class="stat-icon {{ color }}">{{ icon }}</div>
-    <div><div class="stat-value">{{ val }}</div><div class="stat-label">{{ label }}</div></div>
-  </div>
-  {% endfor %}
+<!-- Summary stats -->
+<div class="stats-grid" style="margin-bottom:20px;">
+  <div class="stat-card"><div class="stat-icon blue">📥</div><div><div class="stat-value">{{ raw_stats.get('total_rows','—') }}</div><div class="stat-label">Raw Rows</div></div></div>
+  <div class="stat-card"><div class="stat-icon amber">⚠️</div><div><div class="stat-value">{{ raw_stats.get('missing','—') }}</div><div class="stat-label">Missing Before</div></div></div>
+  <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-value">0</div><div class="stat-label">Missing After Fill</div></div></div>
+  <div class="stat-card"><div class="stat-icon purple">🏷️</div><div><div class="stat-value">5</div><div class="stat-label">Encoding Methods</div></div></div>
+  <div class="stat-card"><div class="stat-icon cyan">📐</div><div><div class="stat-value">3</div><div class="stat-label">Scaling Strategies</div></div></div>
+  <div class="stat-card"><div class="stat-icon teal">📁</div><div><div class="stat-value">{{ cleaned|length }}</div><div class="stat-label">Output Datasets</div></div></div>
 </div>
 
-<div class="grid-2" style="margin-bottom:22px;">
+<div class="grid-2" style="margin-bottom:20px;">
 
-  <!-- Numbered step list -->
+  <!-- Pipeline steps -->
   <div class="card">
-    <div class="card-title">🔄 Preprocessing Pipeline Steps</div>
+    <div class="card-title">🔄 Pipeline Steps</div>
     <ul class="step-list">
       {% set steps = [
-        ('Load Raw Dataset',
-         'Read PRSA_Data_Aotizhongxin_raw.csv via pandas. Shape: (420,768 × 18).'),
-        ('Inspect & Identify Missing Values',
-         'Counted nulls per column; exported Missing_Values_Report.csv.'),
-        ('Remove Duplicate Rows',
-         'Dropped exact duplicate rows using DataFrame.drop_duplicates().'),
-        ('Fill Numeric NaNs → Median',
-         'Column-wise median imputation for all int64/float64 columns.'),
-        ('Fill Categorical NaNs → Mode',
-         'Mode-fill for object/category columns (wd, station).'),
-        ('Strip & Lowercase Strings',
-         'Normalised categorical strings to avoid case-mismatch issues.'),
-        ('Label Encoding',
-         'Encoded wd & station with sklearn LabelEncoder → saved CSV.'),
-        ('One-Hot Encoding',
-         'Expanded wd into binary columns with pd.get_dummies(drop_first=True).'),
-        ('Ordinal Encoding',
-         'Assigned integer ranks to wind direction by frequency order.'),
-        ('Target Encoding',
-         'Replaced categories with mean PM2.5 value per group.'),
-        ('Embedding Encoding',
-         'Dense-layer representation for high-cardinality categorical column.'),
-        ('Standard Scaling',
-         'Applied StandardScaler (mean=0, std=1) to all numeric columns.'),
-        ('Min-Max Normalisation',
-         'Rescaled features to [0, 1] range for distance-based algorithms.'),
-        ('Save Cleaned Datasets',
-         'Exported 6 CSV variants to the /dataset folder.'),
+        ('Load Raw Dataset',           'PRSA_Data_Aotizhongxin_raw.csv — 35,064 rows × 18 cols.'),
+        ('Inspect Missing Values',     '7,271 missing across 12 columns. PM2.5: 925, CO: 1,776.'),
+        ('Check Duplicates',           '0 duplicate rows found.'),
+        ('Strip Whitespace',           'Leading/trailing spaces removed from text columns.'),
+        ('Fill Numeric NaN → Median',  'Column-wise median imputation for all float64 columns.'),
+        ('Fill Categorical NaN → Mode','Mode-fill for wd (81 missing) and station.'),
+        ('Label Encoding',             'wd + station → integers via sklearn LabelEncoder.'),
+        ('One-Hot Encoding',           'wd + station → binary columns via OneHotEncoder.'),
+        ('Ordinal Encoding',           'Categorical → ranked integers via OrdinalEncoder.'),
+        ('Target Encoding',            'Category → mean PM2.5 per group (mean encoding).'),
+        ('Embedding Encoding',         'Category → 3-D float vector (dense representation).'),
+        ('Standard Scaling',           'All numeric cols: mean=0, std=1 via StandardScaler.'),
+        ('Min-Max Normalisation',      'All numeric cols: rescaled to [0, 1].'),
+        ('Save Output Datasets',       '5+ cleaned CSV variants saved to dataset/ folder.'),
       ] %}
       {% for title, desc in steps %}
       <li class="step-item">
         <div class="step-num">{{ loop.index }}</div>
-        <div class="step-content">
-          <h4>{{ title }}</h4>
-          <p>{{ desc }}</p>
-        </div>
+        <div class="step-content"><h4>{{ title }}</h4><p>{{ desc }}</p></div>
       </li>
       {% endfor %}
     </ul>
   </div>
 
-  <!-- Right column: tables -->
-  <div style="display:flex;flex-direction:column;gap:18px;">
+  <!-- Right column -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Generated datasets -->
+    <div class="card">
+      <div class="card-title">📁 Generated Dataset Files</div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>File</th><th>Rows</th><th>Cols</th><th>Action</th></tr></thead>
+          <tbody>
+            {% for fname, info in cleaned.items() %}
+            <tr>
+              <td style="font-size:.74rem;font-weight:600;">{{ fname }}</td>
+              <td>{{ info.rows }}</td>
+              <td>{{ info.cols }}</td>
+              <td><a href="{{ url_for('download_dataset', filename=fname) }}" class="btn btn-outline btn-sm">⬇</a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" style="color:#94a3b8;text-align:center;padding:16px;">No cleaned datasets found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <!-- Encoding comparison -->
     <div class="card">
       <div class="card-title">🏷️ Encoding Methods</div>
       <div class="table-wrapper">
         <table>
-          <thead><tr><th>Method</th><th>Best For</th><th>Output File</th></tr></thead>
+          <thead><tr><th>Method</th><th>Best For</th></tr></thead>
           <tbody>
-            {% set enc = [
-              ('Label Encoding',    'Tree models',     'clean_label_encode…csv',     'blue'),
-              ('One-Hot Encoding',  'Linear models',   'clean_one_hot_…csv',         'purple'),
-              ('Ordinal Encoding',  'Ordered cats',    'clean_ordinal_…py',          'amber'),
-              ('Target Encoding',   'High cardinality','clean_target_…py',           'red'),
-              ('Embedding',         'Deep learning',   'clean_embedded_…csv',        'cyan'),
+            {% for method, best in [
+              ('Label Encoding',    'Tree-based models'),
+              ('One-Hot Encoding',  'Linear models'),
+              ('Ordinal Encoding',  'Ordered categories'),
+              ('Target Encoding',   'High cardinality'),
+              ('Embedding',         'Deep learning'),
             ] %}
-            {% for method, best, file, color in enc %}
             <tr>
-              <td style="font-weight:700;font-size:.82rem;">{{ method }}</td>
-              <td><span class="tag tag-{{ color }}" style="font-size:.7rem;">{{ best }}</span></td>
-              <td style="font-family:monospace;font-size:.72rem;color:#64748b;">{{ file }}</td>
+              <td style="font-weight:700;">{{ method }}</td>
+              <td><span class="tag tag-blue" style="font-size:.68rem;">{{ best }}</span></td>
             </tr>
             {% endfor %}
           </tbody>
@@ -104,55 +98,16 @@
       </div>
     </div>
 
-    <!-- Scaling methods -->
+    <!-- Scaling -->
     <div class="card">
       <div class="card-title">📐 Scaling Strategies</div>
       <div class="table-wrapper">
         <table>
-          <thead><tr><th>Scaler</th><th>Range</th><th>Best For</th></tr></thead>
+          <thead><tr><th>Scaler</th><th>Output Range</th><th>Use Case</th></tr></thead>
           <tbody>
-            <tr>
-              <td style="font-weight:700;">StandardScaler</td>
-              <td><span class="tag tag-blue">mean=0 std=1</span></td>
-              <td style="font-size:.82rem;">SVM, Logistic Reg.</td>
-            </tr>
-            <tr>
-              <td style="font-weight:700;">MinMaxScaler</td>
-              <td><span class="tag tag-green">[0, 1]</span></td>
-              <td style="font-size:.82rem;">Neural Networks</td>
-            </tr>
-            <tr>
-              <td style="font-weight:700;">RobustScaler</td>
-              <td><span class="tag tag-amber">IQR-based</span></td>
-              <td style="font-size:.82rem;">Outlier-heavy data</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Shape before/after -->
-    <div class="card">
-      <div class="card-title">📊 Data Shape — Before vs After</div>
-      <div class="table-wrapper">
-        <table>
-          <thead><tr><th>Stage</th><th>Rows</th><th>Cols</th></tr></thead>
-          <tbody>
-            {% set shapes = [
-              ('Raw input',         '420,768','18'),
-              ('After dedup',       '420,768','18'),
-              ('After null fill',   '420,768','18'),
-              ('After label encode','420,768','18'),
-              ('After one-hot',     '420,768','33'),
-              ('After scaling',     '420,768','18'),
-            ] %}
-            {% for stage, rows, cols in shapes %}
-            <tr>
-              <td style="font-weight:600;font-size:.82rem;">{{ stage }}</td>
-              <td><span class="tag tag-blue" style="font-size:.72rem;">{{ rows }}</span></td>
-              <td><span class="tag tag-purple" style="font-size:.72rem;">{{ cols }}</span></td>
-            </tr>
-            {% endfor %}
+            <tr><td style="font-weight:700;">StandardScaler</td><td><span class="tag tag-blue">mean=0 std=1</span></td><td style="font-size:.78rem;">SVM, LR, Neural Nets</td></tr>
+            <tr><td style="font-weight:700;">MinMaxScaler</td><td><span class="tag tag-green">[0, 1]</span></td><td style="font-size:.78rem;">Neural Networks</td></tr>
+            <tr><td style="font-weight:700;">Normalizer</td><td><span class="tag tag-amber">unit norm</span></td><td style="font-size:.78rem;">Cosine similarity</td></tr>
           </tbody>
         </table>
       </div>

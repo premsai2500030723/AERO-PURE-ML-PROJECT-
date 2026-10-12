@@ -1,81 +1,98 @@
 {% extends "base.html" %}
 {% block title %}Prediction{% endblock %}
-{% block page_title %}Prediction Tool{% endblock %}
-
+{% block page_title %}PM2.5 Prediction{% endblock %}
 {% block content %}
 
 <div class="page-header">
   <h1>🔮 PM2.5 Prediction Tool</h1>
-  <p>Enter air quality parameters to estimate PM2.5 concentration and AQI category.</p>
+  <p>
+    Uses a trained <strong>Random Forest Regressor</strong> (R²&nbsp;=&nbsp;0.92, MAE&nbsp;=&nbsp;14.28&nbsp;µg/m³).
+    Enter current sensor readings to estimate PM2.5 concentration.
+  </p>
 </div>
+
+{% if not model_ready %}
+<div class="alert alert-warning">
+  ⚠️ No trained model found. Run <code>python train_model.py</code> from the project root first.
+</div>
+{% endif %}
 
 <div class="grid-2">
 
-  <!-- ── Input form ─────────────────────────────── -->
+  <!-- Input form -->
   <div class="card">
-    <div class="card-title">📝 Input Parameters</div>
+    <div class="card-title">📝 Sensor Input Parameters</div>
 
-    <form id="pred-form" method="POST" action="{{ url_for('prediction') }}">
+    <form id="pred-form" method="POST" action="{{ url_for('prediction') }}" novalidate>
+
+      {% if error %}
+      <div class="alert alert-danger">⚠️ {{ error }}</div>
+      {% endif %}
 
       <div class="grid-2">
         {% set fields = [
-          ('pm10',  'PM10 (µg/m³)',       '85',   'number'),
-          ('so2',   'SO₂ (µg/m³)',        '14',   'number'),
-          ('no2',   'NO₂ (µg/m³)',        '50',   'number'),
-          ('co',    'CO (µg/m³)',         '900',  'number'),
-          ('o3',    'O₃ (µg/m³)',         '60',   'number'),
-          ('temp',  'Temperature (°C)',   '12',   'number'),
-          ('pres',  'Pressure (hPa)',     '1013', 'number'),
-          ('dewp',  'Dew Point (°C)',     '-2',   'number'),
-          ('rain',  'Rainfall (mm)',      '0',    'number'),
-          ('wspm',  'Wind Speed (m/s)',   '2.1',  'number'),
-          ('month', 'Month (1–12)',       '3',    'number'),
-          ('hour',  'Hour (0–23)',        '14',   'number'),
+          ('pm10',  'PM10',          'µg/m³', '85',   '0', '999'),
+          ('so2',   'SO₂',           'µg/m³', '14',   '0', '999'),
+          ('no2',   'NO₂',           'µg/m³', '50',   '0', '999'),
+          ('co',    'CO',            'µg/m³', '900',  '0', '9999'),
+          ('o3',    'O₃',            'µg/m³', '60',   '0', '999'),
+          ('temp',  'Temperature',   '°C',    '12',   '-40','50'),
+          ('pres',  'Pressure',      'hPa',   '1013', '900','1100'),
+          ('dewp',  'Dew Point',     '°C',    '-2',   '-60','40'),
+          ('rain',  'Rainfall',      'mm',    '0',    '0', '999'),
+          ('wspm',  'Wind Speed',    'm/s',   '2.1',  '0', '50'),
         ] %}
-        {% for name, label, placeholder, ftype in fields %}
+        {% for name, label, unit, placeholder, min_v, max_v in fields %}
         <div class="form-group">
-          <label class="form-label" for="{{ name }}">{{ label }}</label>
-          <input class="form-control" type="{{ ftype }}" id="{{ name }}" name="{{ name }}"
+          <label class="form-label" for="{{ name }}">
+            {{ label }} <span style="color:#94a3b8;font-weight:400;">({{ unit }})</span>
+          </label>
+          <input class="form-control" type="number" id="{{ name }}" name="{{ name }}"
                  placeholder="{{ placeholder }}" step="any"
-                 value="{{ form_data[name] | default('') }}" />
+                 min="{{ min_v }}" max="{{ max_v }}"
+                 value="{{ form_data.get(name, '') }}"
+                 {% if not model_ready %}disabled{% endif %}
+                 required/>
         </div>
         {% endfor %}
       </div>
 
-      <!-- AQI client-side helper field -->
-      <div class="form-group">
-        <label class="form-label" for="pm25">Known PM2.5 (optional — for AQI lookup)</label>
-        <input class="form-control" type="number" id="pm25" name="pm25" step="any"
-               placeholder="e.g. 56"
-               value="{{ form_data.pm25 | default('') }}" />
-      </div>
-
-      <div style="display:flex;gap:10px;margin-top:4px;">
-        <button type="submit" class="btn btn-primary" style="flex:1;">
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;"
+                {% if not model_ready %}disabled{% endif %}>
           🔮 Predict PM2.5
         </button>
         <button type="reset" class="btn btn-outline">↺ Reset</button>
       </div>
 
+      <p style="font-size:.7rem;color:#94a3b8;margin-top:10px;line-height:1.5;">
+        ⚠️ This is an ML model estimate, not an official air-quality measurement.
+        PM2.5 and AQI are related but distinct quantities. AQI shown uses US EPA 24-hr PM2.5 breakpoints.
+      </p>
     </form>
   </div>
 
-  <!-- ── Result panel ───────────────────────────── -->
-  <div style="display:flex;flex-direction:column;gap:18px;">
+  <!-- Result + reference -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
 
     {% if prediction is not none %}
-    <!-- Server-rendered result -->
-    <div class="prediction-box">
-      <div style="font-size:.82rem;opacity:.7;margin-bottom:6px;position:relative;z-index:1;">
-        Estimated PM2.5 Concentration
+    <!-- Real prediction result -->
+    <div class="pred-box">
+      <div style="font-size:.78rem;opacity:.75;margin-bottom:6px;position:relative;z-index:1;">Predicted PM2.5 Concentration</div>
+      <div class="pred-value" style="position:relative;z-index:1;">
+        {{ prediction }}<span class="pred-unit"> µg/m³</span>
       </div>
-      <div class="prediction-value" style="position:relative;z-index:1;">
-        {{ prediction }}<span class="prediction-unit"> µg/m³</span>
+      {% if aqi_info %}
+      <div class="pred-label" style="margin-top:10px;font-size:1.05rem;">
+        {{ aqi_info.label }}
       </div>
-      <div class="prediction-label" style="margin-top:10px;">{{ aqi_category }}</div>
+      <div style="font-size:.76rem;opacity:.75;margin-top:4px;position:relative;z-index:1;">
+        {{ aqi_info.desc }}
+      </div>
+      {% endif %}
 
-      <!-- AQI colour scale -->
-      <div class="aqi-bar" style="margin-top:18px;">
+      <!-- AQI colour scale bar -->
+      <div class="aqi-bar" style="margin-top:16px;position:relative;z-index:1;">
         <span style="background:#22c55e;"></span>
         <span style="background:#eab308;"></span>
         <span style="background:#f97316;"></span>
@@ -83,76 +100,56 @@
         <span style="background:#a855f7;"></span>
         <span style="background:#7f1d1d;"></span>
       </div>
-      <div class="aqi-indicator">
-        <span>Good</span><span>Moderate</span><span>Sensitive</span>
-        <span>Unhealthy</span><span>Very Unhealthy</span><span>Hazardous</span>
+      <div class="aqi-labels" style="position:relative;z-index:1;">
+        <span>Good</span><span>Mod.</span><span>Sens.</span>
+        <span>Unhealthy</span><span>V.Unhealthy</span><span>Hazard.</span>
       </div>
     </div>
+
+    {% if aqi_info %}
+    <div class="card" style="border-left:4px solid {{ aqi_info.color }};">
+      <div style="font-size:.88rem;font-weight:700;color:{{ aqi_info.color }};margin-bottom:6px;">
+        {{ aqi_info.label }}
+      </div>
+      <p style="font-size:.82rem;color:#64748b;line-height:1.6;">{{ aqi_info.desc }}</p>
+    </div>
+    {% endif %}
 
     {% else %}
-    <!-- Client-side placeholder shown after JS prediction -->
-    <div id="pred-result" class="prediction-box" style="display:none;">
-      <div style="font-size:.82rem;opacity:.7;margin-bottom:6px;position:relative;z-index:1;">
-        AQI Category (from PM2.5 field)
+    <!-- Placeholder before prediction -->
+    <div style="background:#f8fafc;border:2px dashed #e2e8f0;border-radius:14px;
+                padding:32px;text-align:center;color:#94a3b8;">
+      <div style="font-size:2.5rem;margin-bottom:10px;">🔮</div>
+      <div style="font-size:.88rem;font-weight:600;">
+        Fill in the sensor values and click <strong>Predict PM2.5</strong>
       </div>
-      <div class="prediction-value" style="position:relative;z-index:1;">
-        <span id="pred-value">—</span><span class="prediction-unit"> µg/m³</span>
-      </div>
-      <div id="pred-category" class="prediction-label" style="margin-top:10px;">—</div>
-      <div class="aqi-bar" style="margin-top:18px;">
-        <span style="background:#22c55e;"></span>
-        <span style="background:#eab308;"></span>
-        <span style="background:#f97316;"></span>
-        <span style="background:#ef4444;"></span>
-        <span style="background:#a855f7;"></span>
-        <span style="background:#7f1d1d;"></span>
-      </div>
-      <div class="aqi-indicator">
-        <span>Good</span><span>Moderate</span><span>Sensitive</span>
-        <span>Unhealthy</span><span>Very Unhealthy</span><span>Hazardous</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">ℹ️ How to use</div>
-      <p style="font-size:.83rem;color:#64748b;line-height:1.7;">
-        Fill in the pollutant and weather parameters, then click
-        <strong>Predict PM2.5</strong>. The backend model estimates the PM2.5
-        concentration and classifies the AQI category automatically.
-      </p>
     </div>
     {% endif %}
 
     <!-- AQI reference table -->
     <div class="card" style="padding:0;overflow:hidden;">
-      <div style="padding:16px 18px 0;">
-        <div class="card-title">📋 AQI Reference Scale</div>
-      </div>
+      <div style="padding:14px 16px 0;"><div class="card-title">📋 US EPA PM2.5 AQI Reference</div></div>
       <div class="table-wrapper" style="border:none;border-radius:0;">
         <table>
-          <thead>
-            <tr><th>PM2.5 (µg/m³)</th><th>Category</th><th>Health Impact</th></tr>
-          </thead>
+          <thead><tr><th>PM2.5 (µg/m³)</th><th>Category</th><th>Health Impact</th></tr></thead>
           <tbody>
-            {% set aqi = [
-              ('0 – 12',   'Good',               '#22c55e', 'tag-green',  'Minimal risk'),
-              ('12 – 35',  'Moderate',            '#eab308', 'tag-amber',  'Acceptable'),
-              ('35 – 55',  'Sensitive Groups',    '#f97316', 'tag-amber',  'Sensitive people'),
-              ('55 – 150', 'Unhealthy',           '#ef4444', 'tag-red',    'Everyone affected'),
-              ('150 – 250','Very Unhealthy',      '#a855f7', 'tag-purple', 'Health alert'),
-              ('250+',     'Hazardous',           '#7f1d1d', 'tag-red',    'Emergency'),
+            {% for rng, cat, color, tag, impact in [
+              ('0 – 12.0',    'Good',                       '#22c55e','tag-green', 'Little to no risk'),
+              ('12.1 – 35.4', 'Moderate',                   '#eab308','tag-amber', 'Sensitive people affected'),
+              ('35.5 – 55.4', 'Unhealthy for Sensitive',    '#f97316','tag-amber', 'Sensitive groups at risk'),
+              ('55.5 – 150.4','Unhealthy',                  '#ef4444','tag-red',   'Everyone may be affected'),
+              ('150.5 – 250.4','Very Unhealthy',            '#a855f7','tag-purple','Health alert'),
+              ('250.5+',      'Hazardous',                  '#7f1d1d','tag-red',   'Emergency conditions'),
             ] %}
-            {% for range, cat, clr, tag, impact in aqi %}
             <tr>
-              <td style="font-weight:700;font-size:.82rem;">{{ range }}</td>
+              <td style="font-weight:700;font-size:.8rem;">{{ rng }}</td>
               <td>
                 <div style="display:flex;align-items:center;gap:6px;">
-                  <span style="width:10px;height:10px;border-radius:50%;
-                               background:{{ clr }};flex-shrink:0;"></span>
-                  <span class="tag {{ tag }}" style="font-size:.7rem;">{{ cat }}</span>
+                  <span style="width:9px;height:9px;border-radius:50%;background:{{ color }};flex-shrink:0;"></span>
+                  <span class="tag {{ tag }}" style="font-size:.68rem;">{{ cat }}</span>
                 </div>
               </td>
-              <td style="font-size:.8rem;color:#64748b;">{{ impact }}</td>
+              <td style="font-size:.78rem;color:#64748b;">{{ impact }}</td>
             </tr>
             {% endfor %}
           </tbody>

@@ -1,89 +1,77 @@
 {% extends "base.html" %}
 {% block title %}Visualization{% endblock %}
 {% block page_title %}EDA Visualizations{% endblock %}
-
 {% block content %}
 
 <div class="page-header">
   <h1>📈 EDA Visualizations</h1>
-  <p>{{ images|length }} charts generated from the Aotizhongxin air quality dataset. Click any chart to expand.</p>
+  <p>{{ total_charts }} charts generated from the Aotizhongxin air quality dataset. Click any chart to enlarge. Use ← → arrow keys to navigate.</p>
 </div>
 
-<!-- Category filter pills -->
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;align-items:center;">
-  <span style="font-size:.78rem;font-weight:600;color:#64748b;margin-right:4px;">Filter:</span>
+<!-- Search + filter -->
+<form method="GET" action="{{ url_for('visualization') }}" style="margin-bottom:14px;">
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <input type="hidden" name="cat" value="{{ selected_cat }}"/>
+    <input type="text" name="q" value="{{ search }}" class="form-control"
+           style="max-width:280px;" placeholder="🔍 Search by name or pollutant…"/>
+    <button type="submit" class="btn btn-primary btn-sm">Search</button>
+    {% if search %}
+    <a href="{{ url_for('visualization', cat=selected_cat) }}" class="btn btn-outline btn-sm">✕ Clear</a>
+    {% endif %}
+    <span style="font-size:.78rem;color:#64748b;margin-left:auto;">
+      Showing <strong>{{ images|length }}</strong> of {{ total_charts }}
+    </span>
+  </div>
+</form>
+
+<!-- Category pills -->
+<div class="filter-pills">
   {% for cat in categories %}
-  {% set active = (cat == selected_cat) %}
-  <a href="{{ url_for('visualization') }}?cat={{ cat }}"
-     style="display:inline-flex;align-items:center;gap:5px;
-            padding:6px 14px;border-radius:20px;font-size:.78rem;font-weight:600;
-            text-decoration:none;transition:all .18s;
-            {% if active %}
-              background:linear-gradient(135deg,#4f46e5,#06b6d4);color:#fff;
-              box-shadow:0 2px 10px rgba(79,70,229,.35);
-            {% else %}
-              background:#fff;color:#64748b;border:1px solid #e2e8f0;
-            {% endif %}">
+  <a href="{{ url_for('visualization', cat=cat, q=search) }}"
+     class="filter-pill {% if cat == selected_cat %}active{% endif %}">
     {% if cat == 'All' %}🖼️
     {% elif cat == 'Histogram' %}📊
     {% elif cat == 'Boxplot' %}📦
     {% elif cat == 'Outlier' %}🔴
-    {% elif cat == 'Heatmap' %}🌡️
+    {% elif cat == 'Correlation' %}🌡️
     {% elif cat == 'Scatter' %}🔵
-    {% elif cat == 'Count Plot' %}📋
     {% elif cat == 'Pair Plot' %}🔗
+    {% elif cat == 'Trend' %}📅
+    {% elif cat == 'Count Plot' %}📋
+    {% elif cat == 'Missing Values' %}❓
     {% else %}📌{% endif %}
     {{ cat }}
-    <span style="background:{% if active %}rgba(255,255,255,.25){% else %}#f1f5f9{% endif %};
-                 color:{% if active %}#fff{% else %}#64748b{% endif %};
-                 font-size:.65rem;padding:1px 6px;border-radius:10px;font-weight:700;">
-      {% if cat == selected_cat %}{{ images|length }}{% endif %}
-    </span>
+    <span class="count">{{ cat_counts.get(cat, 0) }}</span>
   </a>
   {% endfor %}
 </div>
 
 {% if images %}
-
-<!-- Summary strip -->
-<div class="alert alert-info" style="margin-bottom:18px;">
-  📌 Showing <strong>{{ images|length }}</strong> charts in category
-  <strong>{{ selected_cat }}</strong>. Click any image to view full size.
-</div>
-
-<!-- Image grid with overlay -->
 <div class="img-grid">
   {% for img in images %}
-  <div class="img-card">
-    <div class="img-card-thumb">
+  <div class="img-card" role="button" tabindex="0" aria-label="View {{ img.label }}">
+    <div class="img-thumb">
       <img src="{{ url_for('output_file', filename=img.filename) }}"
-           alt="{{ img.label }}" loading="lazy" />
-      <div class="img-card-overlay">
-        <span>🔍 {{ img.label }}</span>
-      </div>
+           alt="{{ img.label }}" loading="lazy"/>
+      <div class="img-overlay"><span>🔍 {{ img.label }}</span></div>
     </div>
-    <div class="img-card-body">
+    <div class="img-body">
       <span>{{ img.label }}</span>
-      <span style="font-size:.68rem;background:#f1f5f9;padding:2px 7px;
-                   border-radius:8px;color:#94a3b8;">PNG</span>
+      <span class="tag tag-gray" style="font-size:.65rem;">{{ img.category }}</span>
     </div>
   </div>
   {% endfor %}
 </div>
 
 {% else %}
-<div style="text-align:center;padding:60px 20px;">
+<div style="text-align:center;padding:56px 20px;">
   <div style="font-size:3rem;margin-bottom:12px;">📭</div>
-  <h3 style="font-size:1rem;font-weight:700;margin-bottom:6px;">No Charts Found</h3>
-  <p style="color:#64748b;font-size:.85rem;">
-    No charts available for <strong>{{ selected_cat }}</strong>.
-    Run the EDA script to generate visualizations.
+  <h3 style="font-size:1rem;font-weight:700;margin-bottom:6px;">No charts found</h3>
+  <p style="color:#64748b;font-size:.84rem;">
+    {% if search %}No charts match "{{ search }}" in <strong>{{ selected_cat }}</strong>.
+    {% else %}No charts available for <strong>{{ selected_cat }}</strong>.{% endif %}
   </p>
-  <div style="margin-top:16px;">
-    <code style="background:#f1f5f9;padding:6px 14px;border-radius:8px;font-size:.82rem;">
-      python src/EDA_Analysis_air_quality.py
-    </code>
-  </div>
+  <a href="{{ url_for('visualization') }}" class="btn btn-primary" style="margin-top:14px;">View All Charts</a>
 </div>
 {% endif %}
 
