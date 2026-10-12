@@ -495,22 +495,88 @@ def preprocessing():
                            raw_stats=raw_stats)
 
 
+# ── model_report loader (new, cached) ─────────────────────────
+_MODEL_REPORT_PATH  = os.path.join(OUTPUT_DIR, "model_report", "models.json")
+_MR_LIST:  list | None = None
+_MR_INDEX: dict | None = None
+
+def load_model_report() -> tuple[list, dict]:
+    global _MR_LIST, _MR_INDEX
+    if _MR_LIST is not None:
+        return _MR_LIST, _MR_INDEX
+    if not os.path.exists(_MODEL_REPORT_PATH):
+        return [], {}
+    try:
+        with open(_MODEL_REPORT_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+        _MR_LIST  = data
+        _MR_INDEX = {m["id"]: m for m in data}
+        return _MR_LIST, _MR_INDEX
+    except Exception as exc:
+        log.error("Cannot load model_report: %s", exc)
+        return [], {}
+
+
 @app.route("/models")
 def models():
-    model_results = load_model_results()
-    return render_template("models.html", model_results=model_results)
+    report, index = load_model_report()
+    report_ready  = bool(report)
+
+    best_r2 = best_acc = None
+    if report:
+        regs  = [m for m in report if m.get("regression", {}).get("r2") is not None]
+        accs  = [m for m in report if m.get("binary",     {}).get("accuracy") is not None]
+        if regs:
+            best_r2  = max(regs,  key=lambda m: m["regression"]["r2"])["id"]
+        if accs:
+            best_acc = max(accs,  key=lambda m: m["binary"]["accuracy"])["id"]
+
+    return render_template("models.html",
+                           report=report,
+                           index=index,
+                           report_ready=report_ready,
+                           best_r2=best_r2,
+                           best_acc=best_acc)
 
 
 @app.route("/model/<key>")
 def model_detail(key):
-    # Validate key against alphanumeric + underscore only
     if not re.fullmatch(r"[a-z0-9_]+", key):
         abort(400)
-    model_results = load_model_results()
-    m = model_results.get(key)
+    _, index = load_model_report()
+    if not index:
+        return render_template("error.html", code=503,
+                               message="Run: python src/model_report.py"), 503
+    m = index.get(key)
     if not m:
-        return redirect(url_for("models"))
+        abort(404)
     return render_template("model_detail.html", key=key, m=m)
+
+
+@app.route("/api/models")
+def api_models_list():
+    report, _ = load_model_report()
+    return jsonify(report)
+
+
+@app.route("/api/models/<key>")
+def api_model_one(key):
+    if not re.fullmatch(r"[a-z0-9_]+", key):
+        abort(400)
+    _, index = load_model_report()
+    m = index.get(key)
+    if not m:
+        abort(404)
+    return jsonify(m)
+
+
+@app.route("/output/model_report/<path:filename>")
+def model_report_file(filename):
+    safe = os.path.basename(filename)
+    d    = os.path.join(OUTPUT_DIR, "model_report")
+    if not os.path.exists(os.path.join(d, safe)):
+        abort(404)
+    return send_from_directory(d, safe)
 
 
 @app.route("/prediction", methods=["GET", "POST"])

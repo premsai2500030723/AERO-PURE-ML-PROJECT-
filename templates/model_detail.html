@@ -1,71 +1,292 @@
 {% extends "base.html" %}
-{% block title %}{{ m.label }}{% endblock %}
-{% block page_title %}{{ m.label }}{% endblock %}
-{% block content %}
+{% block title %}{{ m.name }}{% endblock %}
+{% block page_title %}{{ m.name }}{% endblock %}
 
-<div style="margin-bottom:18px;">
+{% block content %}
+<div style="margin-bottom:16px;">
   <a href="{{ url_for('models') }}" class="btn btn-outline btn-sm">← Back to Models</a>
 </div>
 
 <div class="page-header">
-  <h1>{% if m.type=='regression' %}📉{% else %}🏷️{% endif %} {{ m.label }}</h1>
-  <p>{% if m.type=='regression' %}Regression — predicts exact PM2.5 concentration (µg/m³).{% else %}Classification — predicts AQI category from pollutant and weather inputs.{% endif %}</p>
+  <h1>{% if m.type=='regression' %}📉{% else %}🏷️{% endif %} {{ m.name }}</h1>
+  <p>{{ m.description }}</p>
 </div>
 
-<!-- Metrics -->
-<div class="card" style="margin-bottom:20px;">
-  <div class="card-title">📈 Performance Metrics</div>
-  {% if m.type == 'regression' %}
-  <div class="stats-grid">
-    {% for lbl, val, color in [('R² Score',m.r2,'blue'),('MAE',m.mae,'green'),('MSE',m.mse,'amber'),('RMSE',m.rmse,'red')] %}
+<!-- ── Tab nav ────────────────────────────────────────────── -->
+<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:20px;border-bottom:2px solid #e2e8f0;padding-bottom:0;" id="tab-nav">
+  {% for tid,tlabel in [('overview','Overview'),('accuracy','Accuracy'),('confusion','Confusion Matrix'),('flowchart','Flowchart'),('charts','Charts')] %}
+  <button class="tab-btn {% if loop.first %}active{% endif %}"
+          data-tab="{{ tid }}"
+          role="tab" aria-selected="{% if loop.first %}true{% else %}false{% endif %}"
+          style="padding:8px 16px;border:none;background:none;font-size:.82rem;font-weight:600;
+                 cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;
+                 color:{% if loop.first %}#0f4c81{% else %}#64748b{% endif %};">
+    {% if tid=='overview' %}📋{% elif tid=='accuracy' %}📈{% elif tid=='confusion' %}🔲{% elif tid=='flowchart' %}🔄{% else %}🖼️{% endif %}
+    {{ tlabel }}
+  </button>
+  {% endfor %}
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TAB 1 — OVERVIEW
+════════════════════════════════════════════════════ -->
+<div id="tab-overview" class="tab-pane">
+  <div class="stats-grid" style="margin-bottom:20px;">
+    {% if m.type == 'regression' %}
+    {% set reg = m.regression %}
+    {% for lbl,val,color in [('R²',reg.r2,'blue'),('MAE',reg.mae,'green'),('MSE',reg.mse,'amber'),('RMSE',reg.rmse,'red')] %}
     <div class="stat-card"><div class="stat-icon {{ color }}">{% if color=='blue' %}📊{% elif color=='green' %}📉{% elif color=='amber' %}⚠️{% else %}📐{% endif %}</div>
     <div><div class="stat-value">{{ val }}</div><div class="stat-label">{{ lbl }}</div></div></div>
     {% endfor %}
-  </div>
-  <div style="margin-top:12px;padding:13px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;font-size:.82rem;color:#1e40af;line-height:1.6;">
-    📌 R²&nbsp;=&nbsp;{{ m.r2 }} means the model explains <strong>{{ (m.r2*100)|round(1) }}%</strong> of PM2.5 variation.
-    MAE&nbsp;=&nbsp;{{ m.mae }}&nbsp;µg/m³ is the average prediction error.
-  </div>
-  {% else %}
-  <div class="stats-grid">
-    {% for lbl, val, color in [('Accuracy',m.accuracy,'blue'),('Precision',m.precision,'green'),('Recall',m.recall,'amber'),('F1 Score',m.f1,'purple')] %}
+    {% set bin = m.binary %}
+    {% if bin.accuracy is defined and bin.accuracy is not none %}
+    <div class="stat-card"><div class="stat-icon teal">🎯</div>
+    <div><div class="stat-value">{{ (bin.accuracy*100)|round(1) }}%</div><div class="stat-label">Binary Acc (derived)</div></div></div>
+    {% endif %}
+    {% set mc = m.multiclass %}
+    {% if mc.accuracy is defined and mc.accuracy is not none %}
+    <div class="stat-card"><div class="stat-icon purple">🏷️</div>
+    <div><div class="stat-value">{{ (mc.accuracy*100)|round(1) }}%</div><div class="stat-label">4-Class Acc (derived)</div></div></div>
+    {% endif %}
+    {% else %}
+    {% set bin = m.binary %}
+    {% set mc  = m.multiclass %}
+    {% set acc_val = bin.accuracy if (bin.accuracy is defined and bin.accuracy is not none) else mc.accuracy %}
+    {% for lbl,val,color in [('Accuracy',(acc_val*100)|round(2)|string+'%','blue'),('Precision',bin.precision if bin.precision is defined else mc.precision,'green'),('Recall',bin.recall if bin.recall is defined else mc.recall,'amber'),('F1 Score',bin.f1 if bin.f1 is defined else mc.f1,'purple')] %}
     <div class="stat-card"><div class="stat-icon {{ color }}">{% if color=='blue' %}🎯{% elif color=='green' %}✅{% elif color=='amber' %}🔄{% else %}⚖️{% endif %}</div>
-    <div><div class="stat-value">{{ (val*100)|round(2) }}%</div><div class="stat-label">{{ lbl }}</div></div></div>
+    <div><div class="stat-value">{{ val }}</div><div class="stat-label">{{ lbl }}</div></div></div>
     {% endfor %}
+    {% if m.roc_auc is defined %}<div class="stat-card"><div class="stat-icon cyan">📉</div><div><div class="stat-value">{{ m.roc_auc }}</div><div class="stat-label">ROC-AUC</div></div></div>{% endif %}
+    {% endif %}
   </div>
-  {% endif %}
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🔧 Hyperparameters</div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+          <tbody>
+            {% for k,v in m.hyperparameters.items() %}
+            <tr><td style="font-weight:700;">{{ k }}</td><td><code style="background:#f1f5f9;padding:1px 7px;border-radius:4px;">{{ v }}</code></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px;font-size:.74rem;color:#64748b;">
+        Training time: <strong>{{ m.train_time_seconds }}s</strong>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📌 About This Model</div>
+      <p style="font-size:.84rem;color:#64748b;line-height:1.7;margin-bottom:12px;">{{ m.description }}</p>
+      {% if m.type == 'regression' %}
+      <div class="alert alert-info" style="font-size:.76rem;">
+        ℹ️ Accuracy and confusion matrices for regressors are <strong>derived</strong> by converting
+        predicted PM2.5 values into AQI classes using the same thresholds as the direct classifiers.
+        They are NOT native classification outputs.
+      </div>
+      {% endif %}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+        <span class="tag tag-blue">{{ m.type }}</span>
+        {% if m.type == 'regression' %}<span class="tag tag-green">PM2.5 prediction</span>{% else %}<span class="tag tag-purple">AQI classification</span>{% endif %}
+        <span class="tag tag-gray">random_state=42</span>
+        <span class="tag tag-gray">80/20 split</span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="grid-2" style="margin-bottom:20px;">
+<!-- ════════════════════════════════════════════════════
+     TAB 2 — ACCURACY
+════════════════════════════════════════════════════ -->
+<div id="tab-accuracy" class="tab-pane" style="display:none;">
 
-  <!-- Confusion matrix or regression behaviour -->
-  {% if m.type == 'classification' and m.confusion_matrix %}
-  <div class="card">
-    <div class="card-title">🔲 Confusion Matrix</div>
-    {% set cm = m.confusion_matrix %}
-    {% set classes = m.classes %}
+  <!-- toggle binary / 4-class -->
+  <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <button class="acc-toggle btn btn-primary btn-sm active" data-which="binary">⚖️ Binary (2-class)</button>
+    <button class="acc-toggle btn btn-outline btn-sm" data-which="multiclass">🏷️ 4-class AQI</button>
+  </div>
+
+  <!-- Binary accuracy panel -->
+  <div id="acc-binary">
+    {% set bin = m.binary %}
+    {% if bin.accuracy is defined and bin.accuracy is not none %}
+    {% if m.type == 'regression' %}
+    <div class="alert alert-info" style="font-size:.76rem;margin-bottom:14px;">
+      ℹ️ These values are <strong>derived</strong> — predicted PM2.5 values were converted to
+      Healthy/Unhealthy using the threshold PM2.5 ≥ 75 µg/m³. Not a native classifier output.
+    </div>
+    {% endif %}
+    <div class="grid-2" style="margin-bottom:16px;">
+      <div class="card" style="text-align:center;padding:24px;">
+        <div style="font-size:3rem;font-weight:800;color:#0f4c81;">{{ (bin.accuracy*100)|round(2) }}%</div>
+        <div style="font-size:.8rem;color:#64748b;margin-top:4px;">Binary Accuracy</div>
+        <div style="font-size:.72rem;color:#94a3b8;margin-top:2px;">Healthy vs Unhealthy (PM2.5 ≥ 75)</div>
+      </div>
+      <div class="card">
+        {% for lbl,val,color in [('Precision',bin.precision,'#3b82f6'),('Recall',bin.recall,'#10b981'),('F1 Score',bin.f1,'#8b5cf6')] %}
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px;">
+            <span style="font-weight:700;">{{ lbl }}</span><span style="font-weight:700;color:{{ color }};">{{ val }}</span>
+          </div>
+          <div class="progress"><div class="progress-bar" style="width:{{ (val*100)|int }}%;background:{{ color }};"></div></div>
+        </div>
+        {% endfor %}
+        {% if m.roc_auc is defined %}
+        <div style="padding:8px 10px;background:#ede9fe;border-radius:7px;font-size:.78rem;font-weight:700;color:#5b21b6;">ROC-AUC: {{ m.roc_auc }}</div>
+        {% endif %}
+      </div>
+    </div>
+    <!-- ROC curve image -->
+    {% if m.roc_png is defined %}
+    <div class="card">
+      <div class="card-title">📉 ROC Curve</div>
+      <img src="{{ url_for('model_report_file', filename=m.roc_png) }}"
+           alt="ROC Curve for {{ m.name }}" style="max-width:420px;margin:0 auto;"/>
+    </div>
+    {% endif %}
+    <!-- Per-class report -->
+    {% if bin.per_class_report %}
+    <div class="card" style="margin-top:14px;">
+      <div class="card-title">📋 Per-Class Report</div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr></thead>
+          <tbody>
+            {% for cls, metrics in bin.per_class_report.items() %}
+            <tr><td style="font-weight:700;">{{ cls }}</td><td>{{ metrics.precision }}</td><td>{{ metrics.recall }}</td><td>{{ metrics['f1-score'] }}</td><td>{{ metrics.support }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="alert alert-info">Binary accuracy not applicable for this model.</div>
+    {% endif %}
+  </div>
+
+  <!-- 4-class accuracy panel -->
+  <div id="acc-multiclass" style="display:none;">
+    {% set mc = m.multiclass %}
+    {% if mc.accuracy is defined and mc.accuracy is not none %}
+    {% if m.type == 'regression' %}
+    <div class="alert alert-info" style="font-size:.76rem;margin-bottom:14px;">
+      ℹ️ Derived — predicted PM2.5 values converted to 4-class AQI using thresholds: &lt;35 Good, 35–75 Moderate, 75–150 Unhealthy, ≥150 Hazardous.
+    </div>
+    {% endif %}
+    <div class="grid-2" style="margin-bottom:16px;">
+      <div class="card" style="text-align:center;padding:24px;">
+        <div style="font-size:3rem;font-weight:800;color:#7c3aed;">{{ (mc.accuracy*100)|round(2) }}%</div>
+        <div style="font-size:.8rem;color:#64748b;margin-top:4px;">4-Class Accuracy</div>
+        <div style="font-size:.72rem;color:#94a3b8;margin-top:2px;">Good / Moderate / Unhealthy / Hazardous</div>
+      </div>
+      <div class="card">
+        {% for lbl,val,color in [('Precision',mc.precision,'#3b82f6'),('Recall',mc.recall,'#10b981'),('F1 Score',mc.f1,'#8b5cf6')] %}
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px;">
+            <span style="font-weight:700;">{{ lbl }}</span><span style="font-weight:700;color:{{ color }};">{{ val }}</span>
+          </div>
+          <div class="progress"><div class="progress-bar" style="width:{{ (val*100)|int }}%;background:{{ color }};"></div></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% if mc.per_class_report %}
+    <div class="card">
+      <div class="card-title">📋 Per-Class Report</div>
+      <div class="table-wrapper">
+        <table>
+          <thead><tr><th>Class</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr></thead>
+          <tbody>
+            {% for cls, metrics in mc.per_class_report.items() %}
+            <tr><td style="font-weight:700;">{{ cls }}</td><td>{{ metrics.precision }}</td><td>{{ metrics.recall }}</td><td>{{ metrics['f1-score'] }}</td><td>{{ metrics.support }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="alert alert-info">4-class accuracy not applicable for this model.</div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TAB 3 — CONFUSION MATRIX
+════════════════════════════════════════════════════ -->
+<div id="tab-confusion" class="tab-pane" style="display:none;">
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+    <button class="cm-toggle btn btn-primary btn-sm active" data-which="binary">⚖️ Binary</button>
+    <button class="cm-toggle btn btn-outline btn-sm"        data-which="multiclass">🏷️ 4-Class</button>
+    <button class="cm-fmt btn btn-outline btn-sm active" data-fmt="counts" style="margin-left:auto;">Counts</button>
+    <button class="cm-fmt btn btn-outline btn-sm" data-fmt="percent">Percent</button>
+  </div>
+
+  {% for which, label, cm_data in [
+    ('binary',     'Binary (Healthy / Unhealthy)',           m.binary),
+    ('multiclass', '4-Class AQI',                            m.multiclass),
+  ] %}
+  <div class="cm-panel" id="cm-{{ which }}" {% if which != 'binary' %}style="display:none;"{% endif %}>
+    {% if cm_data.matrix is defined %}
+    {% set cm      = cm_data.matrix %}
+    {% set classes = cm_data.labels %}
+
+    {% if m.type == 'regression' %}
+    <div class="alert alert-info" style="font-size:.76rem;margin-bottom:12px;">
+      ℹ️ Derived from predicted PM2.5 values — not a native classifier output.
+    </div>
+    {% endif %}
+
+    <!-- Natural-language reading -->
+    {% set total = namespace(n=0) %}
+    {% set top_err = namespace(val=0,r=0,c=0) %}
+    {% for i in range(cm|length) %}
+      {% for j in range(cm[i]|length) %}
+        {% set total.n = total.n + cm[i][j] %}
+        {% if i != j and cm[i][j] > top_err.val %}
+          {% set top_err.val = cm[i][j] %}
+          {% set top_err.r = i %}
+          {% set top_err.c = j %}
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+    <div style="padding:10px 14px;background:#fef3c7;border:1px solid #fde68a;border-radius:8px;font-size:.82rem;margin-bottom:14px;">
+      📌 Most common mistake: <strong>{{ classes[top_err.r] if top_err.r < classes|length else 'Class '+top_err.r|string }}</strong>
+      predicted as <strong>{{ classes[top_err.c] if top_err.c < classes|length else 'Class '+top_err.c|string }}</strong>
+      ({{ top_err.val }} times).
+    </div>
+
     <div style="overflow-x:auto;margin-bottom:14px;">
-      <table style="border-collapse:collapse;width:100%;font-size:.78rem;">
+      <table class="cm-table" style="border-collapse:collapse;font-size:.78rem;" data-cm="{{ cm|tojson }}" data-classes="{{ classes|tojson }}" data-total="{{ total.n }}">
         <thead>
           <tr>
-            <th style="padding:7px 9px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:.68rem;">Actual↓ / Pred→</th>
-            {% for cls in classes %}<th style="padding:7px 9px;background:#f8fafc;border:1px solid #e2e8f0;color:#0f4c81;font-weight:700;font-size:.68rem;text-align:center;">{{ cls }}</th>{% endfor %}
+            <th style="padding:7px 10px;background:#f8fafc;border:1px solid #e2e8f0;font-size:.68rem;color:#64748b;">Actual ↓ / Pred →</th>
+            {% for cls in classes %}
+            <th style="padding:7px 10px;background:#f8fafc;border:1px solid #e2e8f0;font-weight:700;font-size:.68rem;color:#0f4c81;text-align:center;">{{ cls }}</th>
+            {% endfor %}
           </tr>
         </thead>
         <tbody>
           {% for i in range(cm|length) %}
           {% set row = cm[i] %}
-          {% set rt = row|sum %}
+          {% set row_sum = row|sum %}
           <tr>
-            <td style="padding:7px 9px;background:#f8fafc;border:1px solid #e2e8f0;font-weight:700;color:#0f4c81;font-size:.74rem;">{{ classes[i] if i < classes|length else 'C'+i|string }}</td>
+            <td style="padding:7px 10px;background:#f8fafc;border:1px solid #e2e8f0;font-weight:700;font-size:.72rem;color:#0f4c81;">{{ classes[i] if i < classes|length else 'C'+i|string }}</td>
             {% for j in range(row|length) %}
-            {% set v = row[j] %}
-            {% set pct = ((v/rt*100)|round(0)|int) if rt > 0 else 0 %}
-            <td style="padding:9px;border:1px solid #e2e8f0;text-align:center;font-weight:{% if i==j %}800{% else %}500{% endif %};
-                background:{% if i==j %}#dbeafe{% elif v > 0 %}#fef9c3{% else %}#fafafa{% endif %};
-                color:{% if i==j %}#1d4ed8{% elif v > 0 %}#92400e{% else %}#94a3b8{% endif %};">
-              <div style="font-size:.88rem;">{{ v }}</div>
-              <div style="font-size:.62rem;opacity:.7;">{{ pct }}%</div>
+            {% set v   = row[j] %}
+            {% set pct = ((v / row_sum * 100)|round(1)) if row_sum > 0 else 0 %}
+            <td class="cm-cell"
+                data-count="{{ v }}" data-pct="{{ pct }}"
+                style="padding:9px;border:1px solid #e2e8f0;text-align:center;min-width:64px;
+                       font-weight:{% if i==j %}800{% else %}500{% endif %};
+                       background:{% if i==j %}rgba(15,76,129,.12){% elif v > 0 %}#fffbeb{% else %}#fafafa{% endif %};
+                       color:{% if i==j %}#0f4c81{% elif v > 0 %}#92400e{% else %}#94a3b8{% endif %};">
+              <div class="cm-val">{{ v }}</div>
+              <div class="cm-pct" style="font-size:.6rem;opacity:.7;display:none;">{{ pct }}%</div>
             </td>
             {% endfor %}
           </tr>
@@ -73,126 +294,207 @@
         </tbody>
       </table>
     </div>
-    <div style="display:flex;gap:12px;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;gap:5px;font-size:.72rem;color:#64748b;"><span style="width:12px;height:12px;background:#dbeafe;border:1px solid #bfdbfe;border-radius:2px;display:inline-block;"></span>Correct (diagonal)</div>
-      <div style="display:flex;align-items:center;gap:5px;font-size:.72rem;color:#64748b;"><span style="width:12px;height:12px;background:#fef9c3;border-radius:2px;display:inline-block;"></span>Incorrect</div>
-    </div>
+
+    <!-- per-class accuracy bars -->
     <div style="font-size:.78rem;font-weight:700;color:#64748b;margin-bottom:8px;">Per-Class Accuracy</div>
     {% for i in range(cm|length) %}
     {% set row = cm[i] %}{% set rt = row|sum %}{% set correct = row[i] %}
     {% set pct = ((correct/rt*100)|round(1)) if rt > 0 else 0 %}
-    <div style="margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;font-size:.76rem;margin-bottom:2px;">
+    <div style="margin-bottom:7px;">
+      <div style="display:flex;justify-content:space-between;font-size:.74rem;margin-bottom:2px;">
         <span style="font-weight:700;">{{ classes[i] if i < classes|length else 'Class '+i|string }}</span>
         <span style="color:#64748b;">{{ correct }}/{{ rt }} = <strong>{{ pct }}%</strong></span>
       </div>
       <div class="progress" style="height:5px;">
-        <div class="progress-bar" style="width:{{ pct }}%;background:{% if pct >= 80 %}#10b981{% elif pct >= 60 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+        <div class="progress-bar" style="width:{{ pct }}%;background:{% if pct>=80 %}#10b981{% elif pct>=60 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
       </div>
     </div>
     {% endfor %}
-  </div>
-  {% else %}
-  <div class="card">
-    <div class="card-title">📊 Error Analysis</div>
-    {% for lbl, val, max_v, color in [('MAE',m.mae,60,'#10b981'),('RMSE',m.rmse,80,'#ef4444')] %}
-    <div style="margin-bottom:13px;">
-      <div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px;">
-        <span style="font-weight:700;">{{ lbl }}</span><span style="color:#64748b;">{{ val }} µg/m³</span>
-      </div>
-      <div class="progress"><div class="progress-bar" style="width:{{ [(val|float/max_v*100)|int,100]|min }}%;background:{{ color }};"></div></div>
-    </div>
-    {% endfor %}
-    <div style="margin-top:14px;padding:13px;background:#f8fafc;border-radius:9px;border:1px solid #e2e8f0;">
-      <div style="font-size:.76rem;font-weight:700;color:#64748b;margin-bottom:8px;">AQI REFERENCE</div>
-      {% for lbl, rng, c in [('Good','0–35 µg/m³','#22c55e'),('Moderate','35–75','#eab308'),('Unhealthy','75–150','#ef4444'),('Hazardous','150+','#7f1d1d')] %}
-      <div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:.78rem;">
-        <span style="width:10px;height:10px;border-radius:50%;background:{{ c }};flex-shrink:0;"></span>
-        <span style="font-weight:600;">{{ lbl }}</span>
-        <span style="color:#94a3b8;margin-left:auto;">{{ rng }}</span>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-  {% endif %}
 
-  <!-- Feature importance -->
-  {% if m.feature_importance %}
-  <div class="card">
-    <div class="card-title">🏆 Feature Importance</div>
-    {% set fi_items = m.feature_importance.items()|list|sort(attribute=1,reverse=True) %}
-    {% for feat, imp in fi_items %}
-    <div style="margin-bottom:10px;">
-      <div style="display:flex;justify-content:space-between;font-size:.8rem;margin-bottom:3px;">
-        <span style="font-weight:700;">{{ feat }}</span>
-        <span style="color:#64748b;font-weight:600;">{{ (imp*100)|round(1) }}%</span>
-      </div>
-      <div class="progress" style="height:5px;">
-        <div class="progress-bar" style="width:{{ (imp*100)|round(1) }}%;background:{% if imp > 0.5 %}#0f4c81{% elif imp > 0.1 %}#0ea5e9{% else %}#94a3b8{% endif %};"></div>
-      </div>
+    <div style="margin-top:12px;">
+      <a href="{{ url_for('model_report_file', filename=cm_data.confusion_matrix_png) }}"
+         download class="btn btn-outline btn-sm">⬇ Download PNG</a>
     </div>
-    {% endfor %}
-  </div>
-  {% endif %}
 
+    {% else %}
+    <div class="alert alert-info">Confusion matrix not available for this panel.</div>
+    {% endif %}
+  </div>
+  {% endfor %}
 </div>
 
-<!-- Flowchart -->
-<div class="card" style="margin-bottom:20px;">
-  <div class="card-title">🔄 Pipeline Flowchart — Step by step</div>
-  <div style="overflow-x:auto;">
-    <div style="display:flex;align-items:flex-start;gap:0;min-width:680px;padding:8px 0;">
-      {% set steps = [
-        ('📂','RAW DATA','35,064 rows × 18 cols','Input'),
-        ('🧹','CLEAN','Drop NaN target, fill features w/ median','Preprocessing'),
-        ('🏷️','FEATURES','PM10,SO2,NO2,CO,O3,TEMP,PRES,DEWP,RAIN,WSPM','10 Features'),
-        ('📐','SCALE','StandardScaler mean=0 std=1','Normalization'),
-        ('✂️','SPLIT','80% Train · 20% Test','34,139 rows'),
-        ('🤖',m.label|upper,'{% if m.type==\"regression\" %}Predict PM2.5 value{% else %}Predict AQI class{% endif %}','← This Model'),
-        ('🎯','OUTPUT','{% if m.type==\"regression\" %}PM2.5 µg/m³ number{% else %}AQI Category{% endif %}','Prediction'),
-      ] %}
-      {% for icon, title, sub, label in steps %}
-      <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
-        <div style="background:{% if loop.index == 6 %}linear-gradient(135deg,#0f4c81,#0ea5e9);border:2px solid #38bdf8;{% else %}linear-gradient(135deg,#1e3a5f,#0f2d5e);{% endif %}
-                    color:#fff;border-radius:10px;padding:12px 8px;text-align:center;width:100%;
-                    box-shadow:0 2px 8px rgba(15,76,129,.25);">
-          <div style="font-size:1.2rem;margin-bottom:4px;">{{ icon }}</div>
-          <div style="font-size:.68rem;font-weight:700;margin-bottom:2px;">{{ title }}</div>
-          <div style="font-size:.6rem;opacity:.7;line-height:1.3;">{{ sub }}</div>
+<!-- ════════════════════════════════════════════════════
+     TAB 4 — FLOWCHART (Mermaid)
+════════════════════════════════════════════════════ -->
+<div id="tab-flowchart" class="tab-pane" style="display:none;">
+
+  <div class="card">
+    <div class="card-title">🔄 Model Pipeline — {{ m.name }}</div>
+
+    {% set steps = {
+      'linear_regression':       'Fit OLS — Normal Equation\n(theta = pinv(X) · y)',
+      'ridge':                   'Fit OLS + L2 Penalty\nalpha=1.0 → shrink coefficients',
+      'lasso':                   'Fit OLS + L1 Penalty\nalpha=0.1 → zeroes weak features',
+      'elasticnet':              'Fit OLS + L1+L2 Mix\nalpha=0.1, l1_ratio=0.5',
+      'decision_tree_regressor': 'Recursive binary splits\non feature thresholds (max_depth=5)',
+      'random_forest':           '100 bootstrap trees\nmax_depth=10 → average predictions',
+      'logistic_binary':         'Linear score → Sigmoid\nthreshold 0.5 → Healthy/Unhealthy',
+      'logistic_multiclass':     'Linear scores → Softmax\n→ class with highest probability',
+    } %}
+    {% set step = steps.get(key, 'Train model on scaled features') %}
+
+    <div class="mermaid" id="flowchart-diagram">
+flowchart TD
+    A["📂 Raw CSV\n35,064 records, 18 cols"] --> B
+    B["🧹 Handle Missing Values\nMedian fill for 12 columns\n(PM2.5: 925 missing)"] --> C
+    C["🏷️ Encode Categoricals\nwd + station → integers"] --> D
+    D["📐 Select Features\nPM10 SO2 NO2 CO O3\nTEMP PRES DEWP RAIN WSPM"] --> E
+    E["✂️ Train/Test Split 80/20\nrandom_state=42\nTrain 27,311 · Test 6,828"] --> F
+    F["📊 StandardScaler\nfit on train only\nmean=0, std=1"] --> G
+    G["🤖 {{ m.name }}\n{{ step }}"] --> H
+    H["📉 Evaluate Regression\nR²={{ m.regression.r2 if m.regression else 'N/A' }}\nMAE={{ m.regression.mae if m.regression else 'N/A' }}\nRMSE={{ m.regression.rmse if m.regression else 'N/A' }}"] --> I
+    I["🏷️ Convert to AQI Classes\nBinary: PM2.5 ≥ 75 = Unhealthy\n4-class: 0-35 / 35-75 / 75-150 / 150+"] --> J
+    J["✅ Classification Metrics\nBin Acc={{ (m.binary.accuracy*100)|round(1) if (m.binary is defined and m.binary.accuracy is defined and m.binary.accuracy is not none) else 'N/A' }}%\n4-Cl Acc={{ (m.multiclass.accuracy*100)|round(1) if (m.multiclass is defined and m.multiclass.accuracy is defined and m.multiclass.accuracy is not none) else 'N/A' }}%"]
+
+    style A fill:#1e3a5f,color:#fff
+    style G fill:#0f4c81,color:#fff,stroke:#38bdf8,stroke-width:2px
+    style J fill:#065f46,color:#fff
+    </div>
+
+    <div style="margin-top:14px;display:flex;gap:8px;">
+      <button id="dl-svg" class="btn btn-outline btn-sm">⬇ Download SVG</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TAB 5 — CHARTS
+════════════════════════════════════════════════════ -->
+<div id="tab-charts" class="tab-pane" style="display:none;">
+  <div class="card">
+    <div class="card-title">🖼️ Confusion Matrix Charts</div>
+    <div class="img-grid" id="detail-charts">
+      {% for which, cm_data in [('Binary', m.binary), ('4-Class', m.multiclass)] %}
+      {% if cm_data is defined and cm_data.confusion_matrix_png is defined %}
+      <div class="img-card">
+        <div class="img-thumb">
+          <img src="{{ url_for('model_report_file', filename=cm_data.confusion_matrix_png) }}"
+               alt="{{ m.name }} {{ which }} Confusion Matrix" loading="lazy"/>
+          <div class="img-overlay"><span>🔍 {{ m.name }} — {{ which }}</span></div>
         </div>
-        <div style="font-size:.62rem;color:{% if loop.index==6 %}#0ea5e9;font-weight:700;{% else %}#94a3b8;{% endif %}margin-top:5px;text-align:center;">{{ label }}</div>
+        <div class="img-body">
+          <span>{{ which }} Confusion Matrix</span>
+          <a href="{{ url_for('model_report_file', filename=cm_data.confusion_matrix_png) }}"
+             download class="btn btn-outline btn-sm" style="padding:3px 8px;font-size:.68rem;">⬇</a>
+        </div>
       </div>
-      {% if not loop.last %}
-      <div style="display:flex;align-items:center;padding:0 3px;margin-top:18px;color:#94a3b8;font-size:1.1rem;">→</div>
       {% endif %}
       {% endfor %}
+      {% if m.roc_png is defined %}
+      <div class="img-card">
+        <div class="img-thumb">
+          <img src="{{ url_for('model_report_file', filename=m.roc_png) }}"
+               alt="{{ m.name }} ROC Curve" loading="lazy"/>
+          <div class="img-overlay"><span>🔍 ROC Curve</span></div>
+        </div>
+        <div class="img-body">
+          <span>ROC Curve (AUC={{ m.roc_auc }})</span>
+          <a href="{{ url_for('model_report_file', filename=m.roc_png) }}"
+             download class="btn btn-outline btn-sm" style="padding:3px 8px;font-size:.68rem;">⬇</a>
+        </div>
+      </div>
+      {% endif %}
     </div>
+    {% if not (m.binary.confusion_matrix_png is defined or m.multiclass.confusion_matrix_png is defined or m.roc_png is defined) %}
+    <div class="alert alert-info">No chart images found for this model.</div>
+    {% endif %}
   </div>
 </div>
 
-<!-- About this model -->
-<div class="card">
-  <div class="card-title">📌 About This Model</div>
-  <div class="grid-3">
-    {% if key == 'linear_regression' %}{% set about = [('🎯','Task','Regression — predict PM2.5 number'),('⚡','Algorithm','Ordinary Least Squares (OLS)'),('📐','Formula','y = w₁x₁+…+b'),('✅','Strength','Fast, interpretable'),('⚠️','Weakness','Assumes linearity'),('📊','Best For','Baseline comparison')] %}
-    {% elif key == 'ridge' %}{% set about = [('🎯','Task','Regression + L2 penalty'),('⚡','Algorithm','Ridge Regression'),('📐','Alpha','1.0'),('✅','Strength','Handles multicollinearity'),('⚠️','Weakness','No feature elimination'),('📊','Best For','Correlated features')] %}
-    {% elif key == 'lasso' %}{% set about = [('🎯','Task','Regression + L1 penalty'),('⚡','Algorithm','Lasso Regression'),('📐','Alpha','0.1'),('✅','Strength','Auto feature selection'),('⚠️','Weakness','Unstable with correlated features'),('📊','Best For','Sparse feature sets')] %}
-    {% elif key == 'elasticnet' %}{% set about = [('🎯','Task','Regression + L1+L2'),('⚡','Algorithm','ElasticNet'),('📐','l1_ratio','0.5'),('✅','Strength','Best of Ridge+Lasso'),('⚠️','Weakness','Two hyperparams'),('📊','Best For','Mixed feature types')] %}
-    {% elif key == 'decision_tree_regressor' %}{% set about = [('🎯','Task','Non-linear regression'),('⚡','Algorithm','CART tree'),('📐','Max Depth','5'),('✅','Strength','Non-linear, no scaling needed'),('⚠️','Weakness','Can overfit'),('📊','Best For','Non-linear patterns')] %}
-    {% elif key == 'random_forest' %}{% set about = [('🎯','Task','Ensemble regression'),('⚡','Algorithm','100 Random Trees'),('📐','Max Depth','10'),('✅','Strength','Best R²=0.92, robust'),('⚠️','Weakness','Less interpretable'),('📊','Best For','Production predictions')] %}
-    {% elif key == 'logistic_binary' %}{% set about = [('🎯','Task','Binary classification'),('⚡','Algorithm','Logistic Regression'),('📐','Threshold','PM2.5 ≥ 75'),('✅','Strength','Fast, probabilistic'),('⚠️','Weakness','Linear boundary'),('📊','Best For','Health risk alerts')] %}
-    {% elif key == 'logistic_multiclass' %}{% set about = [('🎯','Task','4-class AQI classification'),('⚡','Algorithm','Multinomial LR'),('📐','Solver','lbfgs'),('✅','Strength','Multi-class probabilistic'),('⚠️','Weakness','Linear boundaries'),('📊','Best For','AQI reporting')] %}
-    {% elif key == 'decision_tree_classifier' %}{% set about = [('🎯','Task','4-class AQI classification'),('⚡','Algorithm','Decision Tree (Gini)'),('📐','Max Depth','5'),('✅','Strength','Interpretable rules'),('⚠️','Weakness','Sensitive to data changes'),('📊','Best For','Explainable AI')] %}
-    {% else %}{% set about = [('🎯','Task',m.label),('📊','Type',m.type)] %}
-    {% endif %}
-    {% for icon, lbl, val in about %}
-    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:13px;">
-      <div style="font-size:1.2rem;margin-bottom:5px;">{{ icon }}</div>
-      <div style="font-size:.68rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">{{ lbl }}</div>
-      <div style="font-size:.82rem;font-weight:600;">{{ val }}</div>
-    </div>
-    {% endfor %}
-  </div>
-</div>
+<!-- ── Mermaid + tabs JS ───────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({startOnLoad:false, theme:'base',
+  themeVariables:{primaryColor:'#0f4c81',primaryTextColor:'#fff',
+    nodeBorder:'#1a6cb5',clusterBkg:'#f0f4f8'}});
+
+document.addEventListener('DOMContentLoaded', ()=>{
+
+  /* ── tabs ── */
+  const btns  = document.querySelectorAll('.tab-btn');
+  const panes = document.querySelectorAll('.tab-pane');
+  btns.forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      btns.forEach(b=>{b.classList.remove('active');b.style.color='#64748b';b.style.borderBottomColor='transparent';b.setAttribute('aria-selected','false');});
+      panes.forEach(p=>p.style.display='none');
+      btn.classList.add('active');
+      btn.style.color='#0f4c81';
+      btn.style.borderBottomColor='#0f4c81';
+      btn.setAttribute('aria-selected','true');
+      const pane = document.getElementById('tab-'+btn.dataset.tab);
+      if(pane){ pane.style.display='block'; }
+      if(btn.dataset.tab==='flowchart') renderMermaid();
+    });
+  });
+  // init active tab border
+  const first = document.querySelector('.tab-btn.active');
+  if(first){ first.style.color='#0f4c81'; first.style.borderBottomColor='#0f4c81'; }
+
+  /* ── accuracy toggle ── */
+  document.querySelectorAll('.acc-toggle').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.acc-toggle').forEach(b=>{b.classList.remove('active','btn-primary');b.classList.add('btn-outline');});
+      btn.classList.add('active','btn-primary'); btn.classList.remove('btn-outline');
+      const which = btn.dataset.which;
+      document.getElementById('acc-binary').style.display     = which==='binary'?'block':'none';
+      document.getElementById('acc-multiclass').style.display = which==='multiclass'?'block':'none';
+    });
+  });
+
+  /* ── confusion matrix toggle (binary/4-class) ── */
+  document.querySelectorAll('.cm-toggle').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.cm-toggle').forEach(b=>{b.classList.remove('active','btn-primary');b.classList.add('btn-outline');});
+      btn.classList.add('active','btn-primary'); btn.classList.remove('btn-outline');
+      const which = btn.dataset.which;
+      document.getElementById('cm-binary').style.display     = which==='binary'?'block':'none';
+      document.getElementById('cm-multiclass').style.display = which==='multiclass'?'block':'none';
+    });
+  });
+
+  /* ── counts / percent toggle ── */
+  document.querySelectorAll('.cm-fmt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.cm-fmt').forEach(b=>{b.classList.remove('active','btn-primary');b.classList.add('btn-outline');});
+      btn.classList.add('active','btn-primary'); btn.classList.remove('btn-outline');
+      const fmt = btn.dataset.fmt;
+      document.querySelectorAll('.cm-cell').forEach(cell=>{
+        cell.querySelector('.cm-val').style.display = fmt==='counts'?'block':'none';
+        cell.querySelector('.cm-pct').style.display = fmt==='percent'?'block':'none';
+      });
+    });
+  });
+
+  /* ── Mermaid render ── */
+  let rendered = false;
+  function renderMermaid(){
+    if(rendered) return;
+    rendered = true;
+    mermaid.run({nodes: document.querySelectorAll('.mermaid')});
+  }
+
+  /* ── Download SVG ── */
+  document.getElementById('dl-svg')?.addEventListener('click',()=>{
+    const svg = document.querySelector('#flowchart-diagram svg');
+    if(!svg){alert('Render the flowchart first (click Flowchart tab).');return;}
+    const blob = new Blob([svg.outerHTML],{type:'image/svg+xml'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '{{ key }}_flowchart.svg';
+    a.click();
+  });
+
+});
+</script>
 
 {% endblock %}

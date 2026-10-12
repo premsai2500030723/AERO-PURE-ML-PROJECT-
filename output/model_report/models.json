@@ -1,0 +1,848 @@
+[
+  {
+    "id": "linear_regression",
+    "name": "Linear Regression",
+    "type": "regression",
+    "description": "Ordinary Least Squares — finds the best linear fit between features and PM2.5.",
+    "hyperparameters": {
+      "fit_intercept": true
+    },
+    "train_time_seconds": 0.012,
+    "regression": {
+      "r2": 0.8504,
+      "mae": 20.8354,
+      "mse": 1002.8364,
+      "rmse": 31.6676
+    },
+    "binary": {
+      "accuracy": 0.8902,
+      "precision": 0.8332,
+      "recall": 0.9191,
+      "f1": 0.874,
+      "per_class_report": {
+        "Healthy (PM2.5<75)": {
+          "precision": 0.9382,
+          "recall": 0.8697,
+          "f1-score": 0.9026,
+          "support": 3997.0
+        },
+        "Unhealthy (PM2.5≥75)": {
+          "precision": 0.8332,
+          "recall": 0.9191,
+          "f1-score": 0.874,
+          "support": 2831.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Healthy (PM2.5<75)",
+        "Unhealthy (PM2.5≥75)"
+      ],
+      "matrix": [
+        [
+          3476,
+          521
+        ],
+        [
+          229,
+          2602
+        ]
+      ],
+      "confusion_matrix_png": "linear_regression_binary_cm.png"
+    },
+    "multiclass": {
+      "accuracy": 0.7446,
+      "precision": 0.7617,
+      "recall": 0.7446,
+      "f1": 0.7497,
+      "per_class_report": {
+        "Good (<35)": {
+          "precision": 0.9359,
+          "recall": 0.8008,
+          "f1-score": 0.8631,
+          "support": 2390.0
+        },
+        "Moderate (35-75)": {
+          "precision": 0.6042,
+          "recall": 0.6241,
+          "f1-score": 0.614,
+          "support": 1607.0
+        },
+        "Unhealthy (75-150)": {
+          "precision": 0.6314,
+          "recall": 0.7617,
+          "f1-score": 0.6904,
+          "support": 1691.0
+        },
+        "Hazardous (≥150)": {
+          "precision": 0.8116,
+          "recall": 0.7711,
+          "f1-score": 0.7908,
+          "support": 1140.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Good (<35)",
+        "Moderate (35-75)",
+        "Unhealthy (75-150)",
+        "Hazardous (≥150)"
+      ],
+      "matrix": [
+        [
+          1914,
+          432,
+          36,
+          8
+        ],
+        [
+          127,
+          1003,
+          458,
+          19
+        ],
+        [
+          4,
+          222,
+          1288,
+          177
+        ],
+        [
+          0,
+          3,
+          258,
+          879
+        ]
+      ],
+      "confusion_matrix_png": "linear_regression_multiclass_cm.png"
+    }
+  },
+  {
+    "id": "ridge",
+    "name": "Ridge Regression",
+    "type": "regression",
+    "description": "OLS with L2 penalty (alpha=1.0) — shrinks large coefficients to reduce overfitting.",
+    "hyperparameters": {
+      "alpha": 1.0
+    },
+    "train_time_seconds": 0.009,
+    "regression": {
+      "r2": 0.8504,
+      "mae": 20.8352,
+      "mse": 1002.8421,
+      "rmse": 31.6677
+    },
+    "binary": {
+      "accuracy": 0.8902,
+      "precision": 0.8332,
+      "recall": 0.9191,
+      "f1": 0.874,
+      "per_class_report": {
+        "Healthy (PM2.5<75)": {
+          "precision": 0.9382,
+          "recall": 0.8697,
+          "f1-score": 0.9026,
+          "support": 3997.0
+        },
+        "Unhealthy (PM2.5≥75)": {
+          "precision": 0.8332,
+          "recall": 0.9191,
+          "f1-score": 0.874,
+          "support": 2831.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Healthy (PM2.5<75)",
+        "Unhealthy (PM2.5≥75)"
+      ],
+      "matrix": [
+        [
+          3476,
+          521
+        ],
+        [
+          229,
+          2602
+        ]
+      ],
+      "confusion_matrix_png": "ridge_binary_cm.png"
+    },
+    "multiclass": {
+      "accuracy": 0.7446,
+      "precision": 0.7617,
+      "recall": 0.7446,
+      "f1": 0.7497,
+      "per_class_report": {
+        "Good (<35)": {
+          "precision": 0.9359,
+          "recall": 0.8008,
+          "f1-score": 0.8631,
+          "support": 2390.0
+        },
+        "Moderate (35-75)": {
+          "precision": 0.6042,
+          "recall": 0.6241,
+          "f1-score": 0.614,
+          "support": 1607.0
+        },
+        "Unhealthy (75-150)": {
+          "precision": 0.6314,
+          "recall": 0.7617,
+          "f1-score": 0.6904,
+          "support": 1691.0
+        },
+        "Hazardous (≥150)": {
+          "precision": 0.8116,
+          "recall": 0.7711,
+          "f1-score": 0.7908,
+          "support": 1140.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Good (<35)",
+        "Moderate (35-75)",
+        "Unhealthy (75-150)",
+        "Hazardous (≥150)"
+      ],
+      "matrix": [
+        [
+          1914,
+          432,
+          36,
+          8
+        ],
+        [
+          127,
+          1003,
+          458,
+          19
+        ],
+        [
+          4,
+          222,
+          1288,
+          177
+        ],
+        [
+          0,
+          3,
+          258,
+          879
+        ]
+      ],
+      "confusion_matrix_png": "ridge_multiclass_cm.png"
+    }
+  },
+  {
+    "id": "lasso",
+    "name": "Lasso Regression",
+    "type": "regression",
+    "description": "OLS with L1 penalty (alpha=0.1) — zeroes out unimportant feature coefficients.",
+    "hyperparameters": {
+      "alpha": 0.1,
+      "max_iter": 10000
+    },
+    "train_time_seconds": 0.061,
+    "regression": {
+      "r2": 0.8505,
+      "mae": 20.7533,
+      "mse": 1001.919,
+      "rmse": 31.6531
+    },
+    "binary": {
+      "accuracy": 0.8896,
+      "precision": 0.8334,
+      "recall": 0.917,
+      "f1": 0.8732,
+      "per_class_report": {
+        "Healthy (PM2.5<75)": {
+          "precision": 0.9367,
+          "recall": 0.8702,
+          "f1-score": 0.9022,
+          "support": 3997.0
+        },
+        "Unhealthy (PM2.5≥75)": {
+          "precision": 0.8334,
+          "recall": 0.917,
+          "f1-score": 0.8732,
+          "support": 2831.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Healthy (PM2.5<75)",
+        "Unhealthy (PM2.5≥75)"
+      ],
+      "matrix": [
+        [
+          3478,
+          519
+        ],
+        [
+          235,
+          2596
+        ]
+      ],
+      "confusion_matrix_png": "lasso_binary_cm.png"
+    },
+    "multiclass": {
+      "accuracy": 0.7444,
+      "precision": 0.7613,
+      "recall": 0.7444,
+      "f1": 0.7495,
+      "per_class_report": {
+        "Good (<35)": {
+          "precision": 0.9362,
+          "recall": 0.8046,
+          "f1-score": 0.8654,
+          "support": 2390.0
+        },
+        "Moderate (35-75)": {
+          "precision": 0.6052,
+          "recall": 0.6248,
+          "f1-score": 0.6148,
+          "support": 1607.0
+        },
+        "Unhealthy (75-150)": {
+          "precision": 0.6295,
+          "recall": 0.7575,
+          "f1-score": 0.6876,
+          "support": 1691.0
+        },
+        "Hazardous (≥150)": {
+          "precision": 0.8102,
+          "recall": 0.7675,
+          "f1-score": 0.7883,
+          "support": 1140.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Good (<35)",
+        "Moderate (35-75)",
+        "Unhealthy (75-150)",
+        "Hazardous (≥150)"
+      ],
+      "matrix": [
+        [
+          1923,
+          424,
+          35,
+          8
+        ],
+        [
+          127,
+          1004,
+          457,
+          19
+        ],
+        [
+          4,
+          228,
+          1281,
+          178
+        ],
+        [
+          0,
+          3,
+          262,
+          875
+        ]
+      ],
+      "confusion_matrix_png": "lasso_multiclass_cm.png"
+    }
+  },
+  {
+    "id": "elasticnet",
+    "name": "ElasticNet",
+    "type": "regression",
+    "description": "Combined L1+L2 regularisation (alpha=0.1, l1_ratio=0.5).",
+    "hyperparameters": {
+      "alpha": 0.1,
+      "l1_ratio": 0.5,
+      "max_iter": 10000
+    },
+    "train_time_seconds": 0.04,
+    "regression": {
+      "r2": 0.8473,
+      "mae": 20.8865,
+      "mse": 1023.7184,
+      "rmse": 31.9956
+    },
+    "binary": {
+      "accuracy": 0.8852,
+      "precision": 0.8286,
+      "recall": 0.9117,
+      "f1": 0.8681,
+      "per_class_report": {
+        "Healthy (PM2.5<75)": {
+          "precision": 0.9327,
+          "recall": 0.8664,
+          "f1-score": 0.8983,
+          "support": 3997.0
+        },
+        "Unhealthy (PM2.5≥75)": {
+          "precision": 0.8286,
+          "recall": 0.9117,
+          "f1-score": 0.8681,
+          "support": 2831.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Healthy (PM2.5<75)",
+        "Unhealthy (PM2.5≥75)"
+      ],
+      "matrix": [
+        [
+          3463,
+          534
+        ],
+        [
+          250,
+          2581
+        ]
+      ],
+      "confusion_matrix_png": "elasticnet_binary_cm.png"
+    },
+    "multiclass": {
+      "accuracy": 0.7364,
+      "precision": 0.7588,
+      "recall": 0.7364,
+      "f1": 0.743,
+      "per_class_report": {
+        "Good (<35)": {
+          "precision": 0.9477,
+          "recall": 0.7891,
+          "f1-score": 0.8612,
+          "support": 2390.0
+        },
+        "Moderate (35-75)": {
+          "precision": 0.5891,
+          "recall": 0.6316,
+          "f1-score": 0.6096,
+          "support": 1607.0
+        },
+        "Unhealthy (75-150)": {
+          "precision": 0.6166,
+          "recall": 0.7522,
+          "f1-score": 0.6777,
+          "support": 1691.0
+        },
+        "Hazardous (≥150)": {
+          "precision": 0.8127,
+          "recall": 0.75,
+          "f1-score": 0.7801,
+          "support": 1140.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Good (<35)",
+        "Moderate (35-75)",
+        "Unhealthy (75-150)",
+        "Hazardous (≥150)"
+      ],
+      "matrix": [
+        [
+          1886,
+          460,
+          36,
+          8
+        ],
+        [
+          102,
+          1015,
+          473,
+          17
+        ],
+        [
+          2,
+          245,
+          1272,
+          172
+        ],
+        [
+          0,
+          3,
+          282,
+          855
+        ]
+      ],
+      "confusion_matrix_png": "elasticnet_multiclass_cm.png"
+    }
+  },
+  {
+    "id": "decision_tree_regressor",
+    "name": "Decision Tree Regressor",
+    "type": "regression",
+    "description": "Recursive binary splits on feature thresholds (max_depth=5).",
+    "hyperparameters": {
+      "criterion": "squared_error",
+      "max_depth": 5
+    },
+    "train_time_seconds": 0.063,
+    "regression": {
+      "r2": 0.859,
+      "mae": 19.2385,
+      "mse": 945.0478,
+      "rmse": 30.7416
+    },
+    "binary": {
+      "accuracy": 0.9022,
+      "precision": 0.837,
+      "recall": 0.9488,
+      "f1": 0.8894,
+      "per_class_report": {
+        "Healthy (PM2.5<75)": {
+          "precision": 0.9599,
+          "recall": 0.8692,
+          "f1-score": 0.9123,
+          "support": 3997.0
+        },
+        "Unhealthy (PM2.5≥75)": {
+          "precision": 0.837,
+          "recall": 0.9488,
+          "f1-score": 0.8894,
+          "support": 2831.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Healthy (PM2.5<75)",
+        "Unhealthy (PM2.5≥75)"
+      ],
+      "matrix": [
+        [
+          3474,
+          523
+        ],
+        [
+          145,
+          2686
+        ]
+      ],
+      "confusion_matrix_png": "decision_tree_regressor_binary_cm.png"
+    },
+    "multiclass": {
+      "accuracy": 0.7589,
+      "precision": 0.7705,
+      "recall": 0.7589,
+      "f1": 0.7602,
+      "per_class_report": {
+        "Good (<35)": {
+          "precision": 0.9059,
+          "recall": 0.8293,
+          "f1-score": 0.8659,
+          "support": 2390.0
+        },
+        "Moderate (35-75)": {
+          "precision": 0.6443,
+          "recall": 0.5737,
+          "f1-score": 0.607,
+          "support": 1607.0
+        },
+        "Unhealthy (75-150)": {
+          "precision": 0.6432,
+          "recall": 0.8338,
+          "f1-score": 0.7262,
+          "support": 1691.0
+        },
+        "Hazardous (≥150)": {
+          "precision": 0.8535,
+          "recall": 0.7614,
+          "f1-score": 0.8048,
+          "support": 1140.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Good (<35)",
+        "Moderate (35-75)",
+        "Unhealthy (75-150)",
+        "Hazardous (≥150)"
+      ],
+      "matrix": [
+        [
+          1982,
+          374,
+          34,
+          0
+        ],
+        [
+          196,
+          922,
+          483,
+          6
+        ],
+        [
+          8,
+          130,
+          1410,
+          143
+        ],
+        [
+          2,
+          5,
+          265,
+          868
+        ]
+      ],
+      "confusion_matrix_png": "decision_tree_regressor_multiclass_cm.png"
+    }
+  },
+  {
+    "id": "random_forest",
+    "name": "Random Forest Regressor",
+    "type": "regression",
+    "description": "Ensemble of 100 decision trees with bootstrap sampling (max_depth=10).",
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 10,
+      "bootstrap": true
+    },
+    "train_time_seconds": 1.269,
+    "regression": {
+      "r2": 0.9195,
+      "mae": 14.2822,
+      "mse": 539.8173,
+      "rmse": 23.234
+    },
+    "binary": {
+      "accuracy": 0.911,
+      "precision": 0.8821,
+      "recall": 0.9064,
+      "f1": 0.8941,
+      "per_class_report": {
+        "Healthy (PM2.5<75)": {
+          "precision": 0.9324,
+          "recall": 0.9142,
+          "f1-score": 0.9232,
+          "support": 3997.0
+        },
+        "Unhealthy (PM2.5≥75)": {
+          "precision": 0.8821,
+          "recall": 0.9064,
+          "f1-score": 0.8941,
+          "support": 2831.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Healthy (PM2.5<75)",
+        "Unhealthy (PM2.5≥75)"
+      ],
+      "matrix": [
+        [
+          3654,
+          343
+        ],
+        [
+          265,
+          2566
+        ]
+      ],
+      "confusion_matrix_png": "random_forest_binary_cm.png"
+    },
+    "multiclass": {
+      "accuracy": 0.7954,
+      "precision": 0.8025,
+      "recall": 0.7954,
+      "f1": 0.798,
+      "per_class_report": {
+        "Good (<35)": {
+          "precision": 0.9243,
+          "recall": 0.8686,
+          "f1-score": 0.8956,
+          "support": 2390.0
+        },
+        "Moderate (35-75)": {
+          "precision": 0.6641,
+          "recall": 0.6914,
+          "f1-score": 0.6774,
+          "support": 1607.0
+        },
+        "Unhealthy (75-150)": {
+          "precision": 0.7069,
+          "recall": 0.7729,
+          "f1-score": 0.7384,
+          "support": 1691.0
+        },
+        "Hazardous (≥150)": {
+          "precision": 0.884,
+          "recall": 0.8219,
+          "f1-score": 0.8518,
+          "support": 1140.0
+        }
+      },
+      "note": "derived — predicted PM2.5 values converted to AQI classes using the same thresholds as direct classifiers",
+      "labels": [
+        "Good (<35)",
+        "Moderate (35-75)",
+        "Unhealthy (75-150)",
+        "Hazardous (≥150)"
+      ],
+      "matrix": [
+        [
+          2076,
+          302,
+          11,
+          1
+        ],
+        [
+          165,
+          1111,
+          330,
+          1
+        ],
+        [
+          5,
+          258,
+          1307,
+          121
+        ],
+        [
+          0,
+          2,
+          201,
+          937
+        ]
+      ],
+      "confusion_matrix_png": "random_forest_multiclass_cm.png"
+    }
+  },
+  {
+    "id": "logistic_binary",
+    "name": "Logistic Regression (Binary)",
+    "type": "classification",
+    "description": "Sigmoid function with threshold 0.5; classifies PM2.5≥75 as Unhealthy.",
+    "hyperparameters": {
+      "C": 1.0,
+      "max_iter": 1000,
+      "solver": "lbfgs"
+    },
+    "train_time_seconds": 0.031,
+    "binary": {
+      "accuracy": 0.8912,
+      "precision": 0.8813,
+      "recall": 0.8523,
+      "f1": 0.8666,
+      "per_class_report": {
+        "Healthy (PM2.5<75)": {
+          "precision": 0.8978,
+          "recall": 0.9187,
+          "f1-score": 0.9081,
+          "support": 3997.0
+        },
+        "Unhealthy (PM2.5≥75)": {
+          "precision": 0.8813,
+          "recall": 0.8523,
+          "f1-score": 0.8666,
+          "support": 2831.0
+        }
+      },
+      "labels": [
+        "Healthy (PM2.5<75)",
+        "Unhealthy (PM2.5≥75)"
+      ],
+      "matrix": [
+        [
+          3672,
+          325
+        ],
+        [
+          418,
+          2413
+        ]
+      ],
+      "confusion_matrix_png": "logistic_binary_binary_cm.png"
+    },
+    "roc_auc": 0.9624,
+    "roc_png": "logistic_binary_roc.png",
+    "multiclass": {
+      "note": "Not applicable for binary-only logistic model."
+    }
+  },
+  {
+    "id": "logistic_multiclass",
+    "name": "Logistic Regression (Multi-class)",
+    "type": "classification",
+    "description": "Softmax over 4 AQI classes: Good/Moderate/Unhealthy/Hazardous.",
+    "hyperparameters": {
+      "C": 1.0,
+      "max_iter": 1000,
+      "solver": "lbfgs"
+    },
+    "train_time_seconds": 0.183,
+    "multiclass": {
+      "accuracy": 0.7523,
+      "precision": 0.7541,
+      "recall": 0.7523,
+      "f1": 0.7525,
+      "per_class_report": {
+        "Good (<35)": {
+          "precision": 0.8747,
+          "recall": 0.8967,
+          "f1-score": 0.8855,
+          "support": 2390.0
+        },
+        "Moderate (35-75)": {
+          "precision": 0.6185,
+          "recall": 0.6173,
+          "f1-score": 0.6179,
+          "support": 1607.0
+        },
+        "Unhealthy (75-150)": {
+          "precision": 0.6546,
+          "recall": 0.6848,
+          "f1-score": 0.6694,
+          "support": 1691.0
+        },
+        "Hazardous (≥150)": {
+          "precision": 0.8398,
+          "recall": 0.7404,
+          "f1-score": 0.7869,
+          "support": 1140.0
+        }
+      },
+      "labels": [
+        "Good (<35)",
+        "Moderate (35-75)",
+        "Unhealthy (75-150)",
+        "Hazardous (≥150)"
+      ],
+      "matrix": [
+        [
+          2143,
+          227,
+          15,
+          5
+        ],
+        [
+          301,
+          992,
+          304,
+          10
+        ],
+        [
+          6,
+          381,
+          1158,
+          146
+        ],
+        [
+          0,
+          4,
+          292,
+          844
+        ]
+      ],
+      "confusion_matrix_png": "logistic_multiclass_multiclass_cm.png"
+    },
+    "binary": {
+      "note": "Not applicable for multi-class logistic model."
+    }
+  }
+]

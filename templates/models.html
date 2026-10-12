@@ -1,231 +1,276 @@
 {% extends "base.html" %}
 {% block title %}Models{% endblock %}
 {% block page_title %}ML Models{% endblock %}
-{% block content %}
 
+{% block content %}
 <div class="page-header">
   <h1>🤖 Machine Learning Models</h1>
-  <p>Real training results on 34,139 records from the Aotizhongxin dataset (80/20 split, random_state=42).</p>
+  <p>Real results — 8 models trained on 27,311 records (80/20 split, random_state=42). All metrics computed on the held-out 6,828-record test set.</p>
 </div>
 
-<!-- Regression section -->
-<h2 style="font-size:.95rem;font-weight:700;margin-bottom:12px;color:#1e293b;">
-  📉 Regression — Predicts exact PM2.5 value (µg/m³)
-</h2>
+{% if not report_ready %}
+<div class="alert alert-warning" style="font-size:.9rem;">
+  ⚠️ No model report found.
+  Run <code style="background:#fef3c7;padding:2px 8px;border-radius:4px;">python src/model_report.py</code>
+  then restart the server.
+</div>
+{% else %}
 
-<div class="grid-3" style="margin-bottom:22px;">
-{% set reg_list = [
-  ('linear_regression',      '📉','#3b82f6','#1d4ed8','Ordinary Least Squares baseline.'),
-  ('ridge',                  '📐','#8b5cf6','#6d28d9','L2 penalty — shrinks large coefficients.'),
-  ('lasso',                  '✂️','#f59e0b','#b45309','L1 penalty — auto feature selection.'),
-  ('elasticnet',             '🔗','#06b6d4','#0e7490','L1+L2 combined regularisation.'),
-  ('decision_tree_regressor','🌳','#10b981','#047857','Tree splits on feature thresholds.'),
-  ('random_forest',          '🌲','#0f4c81','#1a6cb5','100 trees ensemble — best regressor.'),
-] %}
-{% for key, icon, c1, c2, desc in reg_list %}
-{% if key in model_results %}
-{% set m = model_results[key] %}
-<div class="card" style="padding:0;overflow:hidden;">
-  <div style="background:linear-gradient(135deg,{{ c1 }},{{ c2 }});padding:16px 18px;color:#fff;position:relative;overflow:hidden;">
-    <div style="position:absolute;right:-12px;top:-12px;width:60px;height:60px;background:rgba(255,255,255,.1);border-radius:50%;"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:1.3rem;">{{ icon }}</span>
-        <span style="font-size:.84rem;font-weight:700;">{{ m.label }}</span>
-      </div>
-      <span style="background:rgba(255,255,255,.2);color:#fff;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:20px;">Regression</span>
-    </div>
+<!-- ═══════════════════════════════════════════════════
+     REGRESSION CARDS
+═══════════════════════════════════════════════════ -->
+<h2 style="font-size:.95rem;font-weight:700;margin-bottom:12px;">
+  📉 Regression Models — predict exact PM2.5 (µg/m³)
+</h2>
+<div class="grid-3" style="margin-bottom:24px;" id="reg-cards">
+{% for m in report if m.type == 'regression' %}
+{% set reg = m.regression %}
+{% set bin = m.binary %}
+<div class="card" style="padding:0;overflow:hidden;position:relative;">
+  {% if m.id == best_r2 %}
+  <div style="position:absolute;top:8px;right:8px;z-index:2;background:#10b981;color:#fff;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:20px;">★ Best R²</div>
+  {% endif %}
+  {% if m.id == best_acc %}
+  <div style="position:absolute;top:{% if m.id == best_r2 %}28px{% else %}8px{% endif %};right:8px;z-index:2;background:#0f4c81;color:#fff;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:20px;">★ Best Acc</div>
+  {% endif %}
+
+  <div style="background:linear-gradient(135deg,#0f4c81,#1a6cb5);padding:16px 18px;color:#fff;">
+    <div style="font-size:.88rem;font-weight:700;">{{ m.name }}</div>
+    <div style="font-size:.7rem;opacity:.75;margin-top:2px;">{{ m.description }}</div>
   </div>
+
   <div style="padding:14px;">
-    <p style="font-size:.76rem;color:#64748b;margin-bottom:12px;line-height:1.55;">{{ desc }}</p>
+    <!-- Regression metrics row -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;text-align:center;margin-bottom:12px;">
-      {% for lbl, val, bg in [('R²',m.r2,'#eff6ff'),('MAE',m.mae,'#f0fdf4'),('MSE',m.mse,'#faf5ff'),('RMSE',m.rmse,'#fef3c7')] %}
-      <div style="background:{{ bg }};border-radius:6px;padding:7px 3px;">
-        <div style="font-size:.88rem;font-weight:800;">{{ val }}</div>
-        <div style="font-size:.6rem;color:#64748b;font-weight:600;">{{ lbl }}</div>
+      {% for lbl,val,bg in [('R²',reg.r2,'#eff6ff'),('MAE',reg.mae,'#f0fdf4'),('MSE',reg.mse,'#faf5ff'),('RMSE',reg.rmse,'#fef3c7')] %}
+      <div style="background:{{ bg }};border-radius:6px;padding:6px 2px;">
+        <div style="font-size:.82rem;font-weight:800;">{{ val }}</div>
+        <div style="font-size:.58rem;color:#64748b;font-weight:600;">{{ lbl }}</div>
       </div>
       {% endfor %}
     </div>
+
+    <!-- Accuracy pill (derived) -->
+    {% if bin.accuracy is defined and bin.accuracy is not none %}
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;padding:6px 10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;">
+      <span style="font-size:.72rem;color:#14532d;font-weight:600;">Binary Accuracy (derived)</span>
+      <span style="margin-left:auto;font-size:.88rem;font-weight:800;color:#059669;">{{ (bin.accuracy*100)|round(1) }}%</span>
+    </div>
+    {% endif %}
+
+    <!-- R² bar -->
     <div style="margin-bottom:12px;">
       <div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:3px;">
         <span style="color:#64748b;font-weight:600;">R² Score</span>
-        <span style="font-weight:700;color:{{ c1 }};">{{ m.r2 }}</span>
+        <span style="font-weight:700;color:#0f4c81;">{{ reg.r2 }}</span>
       </div>
-      <div class="progress"><div class="progress-bar" style="width:{{ (m.r2*100)|int }}%;background:{{ c1 }};"></div></div>
+      <div class="progress"><div class="progress-bar" style="width:{{ (reg.r2*100)|int }}%;background:#0f4c81;"></div></div>
     </div>
-    <a href="{{ url_for('model_detail', key=key) }}"
-       style="display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 0;
-              border-radius:7px;font-size:.78rem;font-weight:700;text-decoration:none;
-              color:#fff;background:linear-gradient(135deg,{{ c1 }},{{ c2 }});">
+
+    <a href="{{ url_for('model_detail', key=m.id) }}"
+       class="btn btn-primary" style="width:100%;justify-content:center;font-size:.8rem;">
       📊 Details &amp; Flowchart
     </a>
   </div>
 </div>
-{% endif %}
 {% endfor %}
 </div>
 
-<!-- Regression comparison table -->
-<div class="card" style="margin-bottom:24px;">
-  <div class="card-title">📊 Regression Comparison</div>
-  <div class="table-wrapper">
-    <table>
-      <thead><tr><th>Model</th><th>R²</th><th>MAE</th><th>MSE</th><th>RMSE</th><th>Best?</th></tr></thead>
-      <tbody>
-      {% for key, icon, c1, c2, desc in reg_list %}
-      {% if key in model_results %}
-      {% set m = model_results[key] %}
-      {% set is_best = (key == 'random_forest') %}
-      <tr {% if is_best %}style="background:#f0fdf4;"{% endif %}>
-        <td style="font-weight:700;">{{ icon }} {{ m.label }}{% if is_best %} <span class="tag tag-green" style="font-size:.62rem;">Best</span>{% endif %}</td>
-        <td style="font-weight:{% if is_best %}800{% else %}400{% endif %};color:{% if is_best %}#059669{% else %}inherit{% endif %};">{{ m.r2 }}</td>
-        <td>{{ m.mae }}</td><td>{{ m.mse }}</td><td>{{ m.rmse }}</td>
-        <td style="text-align:center;">{% if is_best %}✅{% else %}—{% endif %}</td>
-      </tr>
-      {% endif %}
+<!-- ═══════════════════════════════════════════════════
+     CLASSIFICATION CARDS
+═══════════════════════════════════════════════════ -->
+<h2 style="font-size:.95rem;font-weight:700;margin-bottom:12px;">
+  🏷️ Classification Models — predict AQI category
+</h2>
+<div class="grid-2" style="margin-bottom:24px;">
+{% for m in report if m.type == 'classification' %}
+{% set bin = m.binary %}
+{% set mc  = m.multiclass %}
+<div class="card" style="padding:0;overflow:hidden;position:relative;">
+  {% if m.id == best_acc %}
+  <div style="position:absolute;top:8px;right:8px;z-index:2;background:#0f4c81;color:#fff;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:20px;">★ Best Acc</div>
+  {% endif %}
+
+  <div style="background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:16px 18px;color:#fff;">
+    <div style="font-size:.88rem;font-weight:700;">{{ m.name }}</div>
+    <div style="font-size:.7rem;opacity:.75;margin-top:2px;">{{ m.description }}</div>
+  </div>
+
+  <div style="padding:14px;">
+    {% set acc_val = bin.accuracy if (bin.accuracy is defined and bin.accuracy is not none) else mc.accuracy %}
+    <div style="text-align:center;padding:14px;background:linear-gradient(135deg,#7c3aed22,#4f46e511);border:1px solid #7c3aed44;border-radius:10px;margin-bottom:12px;">
+      <div style="font-size:2rem;font-weight:800;color:#7c3aed;">{{ ((acc_val or 0)*100)|round(2) }}%</div>
+      <div style="font-size:.72rem;color:#64748b;">{% if m.id=='logistic_binary' %}Binary Accuracy{% else %}4-Class Accuracy{% endif %}</div>
+    </div>
+    {% if bin.f1 is defined and bin.f1 is not none %}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;margin-bottom:12px;">
+      {% for lbl,val in [('Precision',bin.precision),('Recall',bin.recall),('F1',bin.f1)] %}
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:8px 4px;">
+        <div style="font-size:.88rem;font-weight:800;">{{ val }}</div>
+        <div style="font-size:.62rem;color:#64748b;font-weight:600;">{{ lbl }}</div>
+      </div>
       {% endfor %}
+    </div>
+    {% elif mc.f1 is defined %}
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;margin-bottom:12px;">
+      {% for lbl,val in [('Precision',mc.precision),('Recall',mc.recall),('F1',mc.f1)] %}
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:8px 4px;">
+        <div style="font-size:.88rem;font-weight:800;">{{ val }}</div>
+        <div style="font-size:.62rem;color:#64748b;font-weight:600;">{{ lbl }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if m.roc_auc is defined %}
+    <div style="padding:6px 10px;background:#ede9fe;border:1px solid #c4b5fd;border-radius:7px;margin-bottom:10px;font-size:.78rem;font-weight:700;color:#5b21b6;">ROC-AUC: {{ m.roc_auc }}</div>
+    {% endif %}
+    <a href="{{ url_for('model_detail', key=m.id) }}"
+       class="btn" style="width:100%;justify-content:center;font-size:.8rem;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;">
+      📊 Details &amp; Flowchart
+    </a>
+  </div>
+</div>
+{% endfor %}
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     COMPARISON TABLE + CHART
+═══════════════════════════════════════════════════ -->
+<div class="grid-2" style="margin-bottom:24px;">
+
+<div class="card">
+  <div class="card-title">📊 Sortable Comparison Table</div>
+  <div class="table-wrapper">
+    <table id="cmp-table" style="font-size:.8rem;">
+      <thead>
+        <tr>
+          <th data-sort="name" style="cursor:pointer;">Model ↕</th>
+          <th data-sort="r2"   style="cursor:pointer;">R² ↕</th>
+          <th data-sort="rmse" style="cursor:pointer;">RMSE ↕</th>
+          <th data-sort="binacc" style="cursor:pointer;">Bin Acc ↕</th>
+          <th data-sort="mcacc"  style="cursor:pointer;">4-Cl Acc ↕</th>
+          <th data-sort="f1"   style="cursor:pointer;">F1 ↕</th>
+        </tr>
+      </thead>
+      <tbody id="cmp-tbody">
+        {% for m in report %}
+        {% set reg = m.get('regression') or {} %}
+        {% set bin = m.get('binary') or {} %}
+        {% set mc  = m.get('multiclass') or {} %}
+        <tr data-name="{{ m.name }}"
+            data-r2="{{ reg.r2 if reg.r2 is not none else '' }}"
+            data-rmse="{{ reg.rmse if reg.rmse is not none else '' }}"
+            data-binacc="{{ bin.accuracy if bin.accuracy is defined and bin.accuracy is not none else '' }}"
+            data-mcacc="{{ mc.accuracy if mc.accuracy is defined and mc.accuracy is not none else '' }}"
+            data-f1="{{ bin.f1 if bin.f1 is defined and bin.f1 is not none else (mc.f1 if mc.f1 is defined else '') }}"
+            {% if m.id == best_r2 or m.id == best_acc %}style="background:#f0fdf4;"{% endif %}>
+          <td style="font-weight:700;">
+            {{ m.name }}
+            {% if m.id == best_r2 %}<span class="tag tag-green" style="font-size:.6rem;">★R²</span>{% endif %}
+            {% if m.id == best_acc %}<span class="tag tag-blue" style="font-size:.6rem;">★Acc</span>{% endif %}
+          </td>
+          <td>{{ reg.r2 if reg.r2 is not none else '—' }}</td>
+          <td>{{ reg.rmse if reg.rmse is not none else '—' }}</td>
+          <td>{{ ((bin.accuracy*100)|round(1)~'%') if (bin.accuracy is defined and bin.accuracy is not none) else '—' }}</td>
+          <td>{{ ((mc.accuracy*100)|round(1)~'%') if (mc.accuracy is defined and mc.accuracy is not none) else '—' }}</td>
+          <td>{{ bin.f1 if (bin.f1 is defined and bin.f1 is not none) else (mc.f1 if mc.f1 is defined else '—') }}</td>
+        </tr>
+        {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- Classification section -->
-<h2 style="font-size:.95rem;font-weight:700;margin-bottom:12px;color:#1e293b;">
-  🏷️ Classification — Predicts AQI Category
-</h2>
-
-{% set clf_list = [
-  ('logistic_binary',         '⚖️','#ef4444','#b91c1c','Binary: Healthy (PM2.5<75) vs Unhealthy (≥75 µg/m³).'),
-  ('logistic_multiclass',     '📊','#8b5cf6','#6d28d9','4-class AQI: Good / Moderate / Unhealthy / Hazardous.'),
-  ('decision_tree_classifier','🌳','#10b981','#047857','Decision Tree with Gini impurity, max_depth=5.'),
-] %}
-
-{% for key, icon, c1, c2, desc in clf_list %}
-{% if key in model_results %}
-{% set m = model_results[key] %}
-<div class="card" style="margin-bottom:18px;padding:0;overflow:hidden;">
-  <div style="background:linear-gradient(135deg,{{ c1 }},{{ c2 }});padding:16px 20px;color:#fff;
-              display:flex;align-items:center;justify-content:space-between;">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:1.5rem;">{{ icon }}</span>
-      <div>
-        <div style="font-size:.9rem;font-weight:700;">{{ m.label }}</div>
-        <div style="font-size:.72rem;opacity:.75;margin-top:1px;">{{ desc }}</div>
-      </div>
-    </div>
-    <a href="{{ url_for('model_detail', key=key) }}"
-       style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);
-              color:#fff;font-size:.76rem;font-weight:700;padding:6px 14px;
-              border-radius:7px;text-decoration:none;white-space:nowrap;">
-      📊 Details &amp; Flowchart
-    </a>
-  </div>
-
-  <div style="padding:18px;">
-    <div class="grid-2">
-      <!-- Metrics -->
-      <div>
-        <div style="background:linear-gradient(135deg,{{ c1 }}22,{{ c1 }}11);border:1px solid {{ c1 }}44;
-                    border-radius:10px;padding:14px;text-align:center;margin-bottom:14px;">
-          <div style="font-size:2.2rem;font-weight:800;color:{{ c1 }};">{{ (m.accuracy*100)|round(2) }}%</div>
-          <div style="font-size:.74rem;color:#64748b;font-weight:600;">Accuracy</div>
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;text-align:center;margin-bottom:14px;">
-          {% for lbl, val in [('Precision',m.precision),('Recall',m.recall),('F1 Score',m.f1)] %}
-          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:9px 4px;">
-            <div style="font-size:.95rem;font-weight:800;">{{ val }}</div>
-            <div style="font-size:.65rem;color:#64748b;margin-top:1px;font-weight:600;">{{ lbl }}</div>
-          </div>
-          {% endfor %}
-        </div>
-        {% for lbl, val, clr in [('Accuracy',m.accuracy,c1),('Precision',m.precision,'#3b82f6'),('Recall',m.recall,'#10b981'),('F1',m.f1,'#8b5cf6')] %}
-        <div style="margin-bottom:8px;">
-          <div style="display:flex;justify-content:space-between;font-size:.74rem;margin-bottom:2px;">
-            <span style="font-weight:600;color:#64748b;">{{ lbl }}</span>
-            <span style="font-weight:700;">{{ (val*100)|round(1) }}%</span>
-          </div>
-          <div class="progress" style="height:5px;"><div class="progress-bar" style="width:{{ (val*100)|int }}%;background:{{ clr }};"></div></div>
-        </div>
-        {% endfor %}
-      </div>
-      <!-- Confusion matrix -->
-      <div>
-        <div style="font-size:.82rem;font-weight:700;margin-bottom:10px;">🔲 Confusion Matrix</div>
-        {% set cm = m.confusion_matrix %}
-        {% set classes = m.classes %}
-        <div style="overflow-x:auto;margin-bottom:12px;">
-          <table style="border-collapse:collapse;width:100%;font-size:.74rem;">
-            <thead>
-              <tr>
-                <th style="padding:6px 8px;background:#f8fafc;border:1px solid #e2e8f0;color:#64748b;font-size:.65rem;">↓Actual / Pred→</th>
-                {% for cls in classes %}<th style="padding:6px 8px;background:#f8fafc;border:1px solid #e2e8f0;color:{{ c1 }};font-weight:700;font-size:.65rem;text-align:center;">{{ cls[:8] }}</th>{% endfor %}
-              </tr>
-            </thead>
-            <tbody>
-              {% for i in range(cm|length) %}
-              {% set row = cm[i] %}
-              {% set rt = row|sum %}
-              <tr>
-                <td style="padding:6px 8px;background:#f8fafc;border:1px solid #e2e8f0;font-weight:700;color:{{ c1 }};font-size:.68rem;">{{ classes[i] if i < classes|length else 'C'+i|string }}</td>
-                {% for j in range(row|length) %}
-                {% set v = row[j] %}
-                {% set pct = ((v/rt*100)|round(0)|int) if rt > 0 else 0 %}
-                <td style="padding:8px;border:1px solid #e2e8f0;text-align:center;font-weight:{% if i==j %}800{% else %}500{% endif %};
-                    background:{% if i==j %}{{ c1 }}33{% elif v > 0 %}#fef9c3{% else %}#fafafa{% endif %};
-                    color:{% if i==j %}{{ c1 }}{% elif v > 0 %}#92400e{% else %}#94a3b8{% endif %};">
-                  <div style="font-size:.82rem;">{{ v }}</div>
-                  <div style="font-size:.58rem;opacity:.7;">{{ pct }}%</div>
-                </td>
-                {% endfor %}
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% for i in range(cm|length) %}
-        {% set row = cm[i] %}
-        {% set rt = row|sum %}
-        {% set correct = row[i] %}
-        {% set pct = ((correct/rt*100)|round(1)) if rt > 0 else 0 %}
-        <div style="margin-bottom:6px;">
-          <div style="display:flex;justify-content:space-between;font-size:.72rem;margin-bottom:2px;">
-            <span style="font-weight:700;">{{ classes[i] if i < classes|length else 'Class '+i|string }}</span>
-            <span style="color:#64748b;">{{ correct }}/{{ rt }} = {{ pct }}%</span>
-          </div>
-          <div class="progress" style="height:5px;">
-            <div class="progress-bar" style="width:{{ pct }}%;background:{% if pct >= 80 %}#10b981{% elif pct >= 60 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
+<div class="card">
+  <div class="card-title">📈 Binary Accuracy — All Models</div>
+  <canvas id="acc-chart" height="230" role="img" aria-label="Accuracy bar chart"></canvas>
 </div>
-{% endif %}
-{% endfor %}
+
+</div>
 
 <!-- Training config -->
 <div class="card">
-  <div class="card-title">🔧 Training Configuration</div>
+  <div class="card-title">🔧 Training Configuration (all models)</div>
   <div class="grid-3">
-    {% for icon, lbl, val in [
-      ('🎯','Target','PM2.5 concentration (µg/m³)'),
-      ('📋','Features','10 input features'),
-      ('✂️','Train/Test Split','80% Train · 20% Test'),
-      ('📐','Scaling','StandardScaler (mean=0, std=1)'),
-      ('🎲','Random State','42 (reproducible)'),
-      ('📊','Training Rows','34,139 (after dropping NaN target)'),
-      ('🌲','RF Estimators','100 trees, max_depth=10'),
-      ('🏷️','Binary Threshold','PM2.5 ≥ 75 µg/m³ = Unhealthy'),
-      ('🌳','DT Max Depth','5 levels'),
+    {% for icon,lbl,val in [
+      ('🎯','Target','PM2.5 (µg/m³)'),
+      ('📋','Features','10 (PM10 SO2 NO2 CO O3 TEMP PRES DEWP RAIN WSPM)'),
+      ('✂️','Split','80 % Train · 20 % Test'),
+      ('📐','Scaling','StandardScaler fit on train only'),
+      ('🎲','Random State','42'),
+      ('📊','Training rows','27,311  Test rows: 6,828'),
+      ('🏷️','Binary threshold','PM2.5 ≥ 75 µg/m³ = Unhealthy'),
+      ('🌲','RF params','n_estimators=100 max_depth=10'),
+      ('📌','Derived note','Regressor accuracy = predicted PM2.5 binned into AQI classes'),
     ] %}
-    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:13px;">
-      <div style="font-size:1.2rem;margin-bottom:5px;">{{ icon }}</div>
-      <div style="font-size:.68rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">{{ lbl }}</div>
-      <div style="font-size:.82rem;font-weight:700;">{{ val }}</div>
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:12px;">
+      <div style="font-size:1.1rem;margin-bottom:4px;">{{ icon }}</div>
+      <div style="font-size:.66rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;">{{ lbl }}</div>
+      <div style="font-size:.8rem;font-weight:700;">{{ val }}</div>
     </div>
     {% endfor %}
   </div>
 </div>
 
+<!-- Chart.js + table sort -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  /* ── accuracy bar chart ── */
+  const resp = fetch('/api/models');
+  resp.then(r=>r.json()).then(data=>{
+    const labels = data.map(m=>m.name.replace(' Regression','').replace(' Regressor','').replace('Logistic ','LR '));
+    const accs   = data.map(m=>{
+      const b = m.binary||{};
+      return b.accuracy != null ? +(b.accuracy*100).toFixed(1) : null;
+    });
+    const colors = accs.map(v=> v==null ? '#e2e8f0' : v>=90 ? '#10b981' : v>=80 ? '#0ea5e9' : '#f59e0b');
+    const ctx = document.getElementById('acc-chart');
+    if(!ctx) return;
+    new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels,
+        datasets:[{
+          label:'Binary Accuracy (%)',
+          data: accs,
+          backgroundColor: colors,
+          borderRadius:5,
+        }]
+      },
+      options:{
+        responsive:true,
+        plugins:{legend:{display:false},
+          tooltip:{callbacks:{label:c=>c.raw!=null ? c.raw+'%':'N/A'}}},
+        scales:{
+          y:{min:60,max:100,ticks:{callback:v=>v+'%'}},
+          x:{ticks:{font:{size:10}}}
+        }
+      }
+    });
+  });
+
+  /* ── sortable table ── */
+  document.querySelectorAll('#cmp-table th[data-sort]').forEach(th=>{
+    th.style.userSelect='none';
+    let asc=true;
+    th.addEventListener('click',()=>{
+      const col   = th.dataset.sort;
+      const tbody = document.getElementById('cmp-tbody');
+      const rows  = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort((a,b)=>{
+        const av = a.dataset[col]||'';
+        const bv = b.dataset[col]||'';
+        const an = parseFloat(av), bn = parseFloat(bv);
+        if(!isNaN(an)&&!isNaN(bn)) return asc?(an-bn):(bn-an);
+        return asc?av.localeCompare(bv):bv.localeCompare(av);
+      });
+      rows.forEach(r=>tbody.appendChild(r));
+      asc=!asc;
+    });
+  });
+})();
+</script>
+
+{% endif %}
 {% endblock %}

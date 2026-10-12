@@ -132,13 +132,17 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Run EDA scripts (optional — outputs already included)
+### 5. Generate model reports (one time)
 ```bash
-python src/EDA_Analysis_air_quality.py
-python src/Dataset_Load_identify_missing_values_air_quality.py
+python src/model_report.py
 ```
 
-### 5. Start the web application
+### 6. Train the prediction model (one time)
+```bash
+python train_model.py
+```
+
+### 7. Start the web application
 ```bash
 python app.py
 ```
